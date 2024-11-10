@@ -36,9 +36,9 @@ async function getRecentRelease(page: number) {
         }
 
         result[i] = {
-            image: image!,
-            episode: parseInt(episode!),
-            title: title!,
+            image,
+            episode: parseInt(episode),
+            title,
         };
     }
 
