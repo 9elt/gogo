@@ -13,7 +13,7 @@ async function getRecentRelease(page: number) {
     const items = _tmp.querySelectorAll(".items>li");
 
     const result = new Array<{
-        href: string;
+        image: string;
         episode: number;
         title: string;
     }>(items.length);
@@ -23,20 +23,20 @@ async function getRecentRelease(page: number) {
 
         const title = item.querySelector(".name")?.textContent;
 
-        const href = item.querySelector("img")?.src;
+        const image = item.querySelector("img")?.src;
 
         const episode = item
             .querySelector(".episode")
             ?.textContent
             ?.replace("Episode ", "");
 
-        if (!title || !href || !episode) {
+        if (!title || !image || !episode) {
             console.warn('failed to parse item', item);
             continue;
         }
 
         result[i] = {
-            href: href!,
+            image: image!,
             episode: parseInt(episode!),
             title: title!,
         };
