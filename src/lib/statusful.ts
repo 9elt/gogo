@@ -34,7 +34,7 @@ export function serialize(values: Statusful[]) {
     for (const value of values) {
         result += value.title
             + "\n"
-            + (value.urlTitle === safeurl(value.title) ? "@L" : value.urlTitle)
+            + (value.urlTitle === safeurl(value.title) ? "@T" : value.urlTitle)
             + "\n"
             + value.image
                 .replace(IMAGE_URI, "@U")
@@ -56,7 +56,11 @@ function deserialize(value: string): Statusful[] {
     const result = new Array<Statusful>(values.length);
 
     for (let i = 0; i < values.length; i++) {
-        const [title, urlTitle, image, status] = values[i].split("\n");
+        let [title, urlTitle, image, status] = values[i].split("\n");
+
+        if (urlTitle === "@T") {
+            urlTitle = safeurl(title);
+        }
 
         if (!title || !urlTitle || !image || !status) {
             console.warn("failed to parse statusful item", values[i]);
@@ -65,7 +69,7 @@ function deserialize(value: string): Statusful[] {
 
         result[i] = {
             title,
-            urlTitle: urlTitle === "@L" ? safeurl(title) : urlTitle,
+            urlTitle,
             image: image
                 .replace("@U", IMAGE_URI)
                 .replace("@T", urlTitle),
