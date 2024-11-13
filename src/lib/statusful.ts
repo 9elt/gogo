@@ -26,15 +26,19 @@ export function dumpStatusful(value: Statusful[]) {
     localStorage.setItem(LSK_STATUSFUL, serialize(value));
 }
 
+const IMAGE_URI = "https://gogocdn.net/cover";
+
 export function serialize(values: Statusful[]) {
     let result = SER_VERSION;
 
     for (const value of values) {
         result += value.title
             + "\n"
-            + value.urlTitle
+            + (value.urlTitle === safeurl(value.title) ? "@L" : value.urlTitle)
             + "\n"
-            + value.image.replace("https://goocdn.net/cover", "URL")
+            + value.image
+                .replace(IMAGE_URI, "@U")
+                .replace(value.urlTitle, "@T")
             + "\n"
             + value.status
             + "\n\n";
@@ -61,11 +65,20 @@ function deserialize(value: string): Statusful[] {
 
         result[i] = {
             title,
-            urlTitle,
-            image: image.replace("URL", "https://goocdn.net/cover"),
+            urlTitle: urlTitle === "@L" ? safeurl(title) : urlTitle,
+            image: image
+                .replace("@U", IMAGE_URI)
+                .replace("@T", urlTitle),
             status: Number(status) as Status,
         };
     }
 
     return result;
+}
+
+function safeurl(title: string) {
+    return title
+        .replace(/[^a-z0-9]/gi, "-")
+        .replace(/--/g, "-")
+        .toLowerCase();
 }
