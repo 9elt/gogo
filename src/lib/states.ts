@@ -7,12 +7,10 @@ export class AsyncState<T> extends State<T> {
         super(value);
     }
 
-    asyncAs<C>(fn: (value: T | null) => Promise<C | null>) {
+    asyncAs<C>(fn: (value: T) => Promise<C>) {
         const child = new State<
-            // value
             | C
-            | null
-            // first loading
+            // NOTE: first load
             | undefined
         >(undefined);
 
