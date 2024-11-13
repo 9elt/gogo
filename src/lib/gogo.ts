@@ -95,7 +95,7 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
 
     const description = _TMP
         .querySelector(".description")
-        ?.textContent;
+        ?.textContent || "no description provided.";
 
     const image = (
         _TMP.querySelector(".anime_info_body_bg>img") as HTMLImageElement | null
@@ -103,6 +103,12 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
         ?.dataset.src;
 
     if (!title || !episodeListId || !description || !image) {
+        console.error(
+            "title", title,
+            "episodeListId", episodeListId,
+            "description", description,
+            "image", image
+        );
         throw new Error("failed to parse details");
     }
 
@@ -185,8 +191,8 @@ export async function getSearch(search: string): Promise<SearchResult[]> {
         const image = (_div.querySelector(".thumbnail-recent_search") as HTMLDivElement)
             ?.style
             .background
-            .replace("url(", "")
-            .replace(")", "");
+            .replace('url("', "")
+            .replace('")', "");
 
         if (!title || !urlTitle || !image) {
             console.warn("failed to parse item", _div);

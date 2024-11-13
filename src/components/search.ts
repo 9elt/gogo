@@ -1,5 +1,5 @@
 import type { MiniElement } from "@9elt/miniframe";
-import { results, search, urlTitle } from "../global";
+import { Status, results, search, statusful, urlTitle } from "../global";
 
 export const Search: MiniElement = {
     tagName: "div",
@@ -9,9 +9,9 @@ export const Search: MiniElement = {
             tagName: "input",
             type: "search",
             placeholder: "search",
-            value: search,
+            value: search.as((search) => search || ""),
             oninput: debounce((e: any) => {
-                search.value = e.target.value.trim();
+                search.value = e.target.value.trim() || null;
             }, 1_000),
         },
         // @ts-ignore
@@ -24,23 +24,43 @@ export const Search: MiniElement = {
                         tagName: "p",
                         children: ["no results"],
                     }
-                ] : results.map((result) => ({
-                    tagName: "div",
-                    children: [
-                        {
-                            tagName: "p",
-                            children: [result.title],
+                ] : results.map((result) => {
+                    const status = statusful.as((statusful) =>
+                        statusful.find((s) => s.urlTitle === result.urlTitle)?.status
+                    );
+
+                    return {
+                        tagName: "div",
+                        style: {
+                            display: "flex",
+                            alignItems: "center",
+                            border: status.as((status) =>
+                                status === Status.Watching ? "2px solid #17a" :
+                                    "none"
+                            ),
                         },
-                        {
-                            tagName: "button",
-                            children: ["watch"],
-                            onclick: () => {
-                                urlTitle.value = result.urlTitle;
-                                search.value = null;
+                        children: [
+                            {
+                                tagName: "img",
+                                style: {
+                                    width: "100px",
+                                },
+                                src: result.image,
                             },
-                        },
-                    ]
-                }))
+                            {
+                                tagName: "p",
+                                style: {
+                                    cursor: "pointer",
+                                },
+                                children: [result.title],
+                                onclick: () => {
+                                    urlTitle.value = result.urlTitle;
+                                    search.value = null;
+                                },
+                            },
+                        ]
+                    };
+                })
             )),
         }
     ],

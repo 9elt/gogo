@@ -1,6 +1,6 @@
 import { State } from "@9elt/miniframe";
 
-export function LimitedText(text: string, limit: number) {
+export function ExpandableText(text: string, limit: number) {
     if (text.length <= limit) {
         return {
             tagName: "span",

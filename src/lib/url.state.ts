@@ -36,7 +36,13 @@ export class UrlState<T extends ToString> extends State<T | null> {
     }
 
     asyncAs<C>(fn: (value: T | null) => Promise<C | null>) {
-        const child = new State<C | null>(null);
+        const child = new State<
+            // value
+            | C
+            | null
+            // first loading
+            | undefined
+        >(undefined);
 
         this.sub(async (value) => {
             child.value = await fn(value);
