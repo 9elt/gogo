@@ -1,5 +1,8 @@
 {
-  "dependencies": {
-    "@9elt/miniframe": "^0.8.4"
-  }
+    "dependencies": {
+        "@9elt/miniframe": "^0.8.4"
+    },
+    "scripts": {
+        "build": "bun build.js"
+    }
 }

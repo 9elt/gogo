@@ -1,5 +1,5 @@
 const build = await Bun.build({
-    entrypoints: ["index.ts"],
+    entrypoints: ["src/index.ts"],
     outdir: ".",
     minify: false,
 });
