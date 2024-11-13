@@ -34,7 +34,7 @@ export function serialize(values: Statusful[]) {
             + "\n"
             + value.urlTitle
             + "\n"
-            + value.image.replace("https://gogocdn.net/cover", "URL")
+            + value.image.replace("https://goocdn.net/cover", "URL")
             + "\n"
             + value.status
             + "\n\n";
