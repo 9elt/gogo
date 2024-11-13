@@ -1,5 +1,6 @@
 const LSK_STATUSFUL = "statusful";
 const SER_VERSION = "v1.";
+export const STATUSFUL_MAX_SIZE = 64;
 
 export enum Status {
     Watching,

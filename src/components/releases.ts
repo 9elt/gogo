@@ -10,7 +10,7 @@ const Pagination: MiniElement = {
             tagName: "button",
             children: ["<"],
             onclick: () => {
-                page.value && page.value--;
+                page.value !== null && page.value > 1 && page.value--;
             },
         },
         // @ts-ignore

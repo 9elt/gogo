@@ -1,14 +1,14 @@
 import { State } from "@9elt/miniframe";
+import { epCache } from "./lib/ep.cache";
 import {
-    Episode,
     getDetails,
     getEpisode,
     getReleases,
     getSearch,
     type SearchResult
 } from "./lib/gogo";
-import { Status, Statusful, dumpStatusful, loadStatusful } from "./lib/statusful";
 import { AsyncState, UrlState } from "./lib/states";
+import { STATUSFUL_MAX_SIZE, Status, Statusful, dumpStatusful, loadStatusful } from "./lib/statusful";
 
 export const page = new UrlState("page", Number);
 page.value ||= 1;
@@ -28,12 +28,21 @@ export const urlTitle = new UrlState<string>("title", String);
 export const details = urlTitle.asyncAs(async (urlTitle) => {
     const details = urlTitle === null ? null : await getDetails(urlTitle)
     if (details && episodeNumber.value === null) {
-        episodeNumber.value = details.episodes[details.episodes.length - 1] || null;
+        episodeNumber.value =
+            epCache.get(urlTitle!) ||
+            details.episodes[details.episodes.length - 1]
+            || null;
     }
     return details;
 });
 
 export const episodeNumber = new AsyncState<number | null>(null);
+
+episodeNumber.sub((value) => {
+    if (value !== null && urlTitle.value !== null) {
+        epCache.add(urlTitle.value, value);
+    }
+});
 
 export const episode = episodeNumber.asyncAs(async (episodeNumber) =>
     urlTitle.value && episodeNumber !== null
@@ -59,9 +68,10 @@ statusful.add = (value, status) => {
         }
     }
     statusful.value.push({ ...value, status });
-    statusful.value = statusful.value.length > 64
-        ? statusful.value.slice(1)
-        : statusful.value;
+    if (statusful.value.length > STATUSFUL_MAX_SIZE) {
+        statusful.value.shift();
+    }
+    statusful.value = statusful.value;
 }
 
 statusful.remove = (value) => {

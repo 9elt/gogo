@@ -1,3 +1,5 @@
+import { cache } from "./cache";
+
 const _TMP = document.createElement("div");
 
 const GOGO_URL = "https://anitaku.bz";
@@ -12,6 +14,13 @@ export type Episode = {
 };
 
 export async function getEpisode(name: string, episode: number): Promise<Episode> {
+    const cacheId = "GET episode" + name + episode;
+    const cached = cache.get(cacheId);
+
+    if (cached) {
+        return cached;
+    }
+
     const raw = await fetch(GOGO_URL + "/" + name + "-episode-" + episode.toString().replace(".", "-"));
 
     if (!raw.ok) {
@@ -45,10 +54,14 @@ export async function getEpisode(name: string, episode: number): Promise<Episode
         };
     }
 
-    return {
+    const result = {
         number: episode,
         links,
     };
+
+    cache.add(cacheId, result);
+
+    return result;
 }
 
 export type EpisodeDetails = {
@@ -60,6 +73,13 @@ export type EpisodeDetails = {
 };
 
 export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
+    const cacheId = "GET details" + urlTitle;
+    const cached = cache.get(cacheId);
+
+    if (cached) {
+        return cached;
+    }
+
     const raw = await fetch(GOGO_URL + "/category/" + urlTitle);
 
     if (!raw.ok) {
@@ -114,7 +134,7 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
 
     _TMP.innerHTML = "";
 
-    return {
+    const result = {
         title,
         urlTitle,
         episodes: lastEpisode === 0 ? [] :
@@ -122,6 +142,10 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
         description,
         image,
     };
+
+    cache.add(cacheId, result);
+
+    return result;
 }
 
 export async function getEpisodeList(id: string, from: number = 0, to: number = 99) {
@@ -165,6 +189,13 @@ export type SearchResult = {
 };
 
 export async function getSearch(search: string): Promise<SearchResult[]> {
+    const cacheId = "GET search" + search;
+    const cached = cache.get(cacheId);
+
+    if (cached) {
+        return cached;
+    }
+
     const raw = await fetch(GOGO_CDN_URL + "/site/loadAjaxSearch?keyword=" + encodeURI(search) + "&id=-1");
 
     if (!raw.ok) {
@@ -208,6 +239,8 @@ export async function getSearch(search: string): Promise<SearchResult[]> {
 
     _TMP.innerHTML = "";
 
+    cache.add(cacheId, result);
+
     return result;
 }
 
@@ -219,6 +252,13 @@ export type Release = {
 };
 
 export async function getReleases(page: number): Promise<Release[]> {
+    const cacheId = "GET releases" + page;
+    const cached = cache.get(cacheId);
+
+    if (cached) {
+        return cached;
+    }
+
     const raw = await fetch(GOGO_CDN_URL + "/ajax/page-recent-release.html?page=" + page + "&type=1");
 
     if (!raw.ok) {
@@ -264,6 +304,8 @@ export async function getReleases(page: number): Promise<Release[]> {
     }
 
     _TMP.innerHTML = "";
+
+    cache.add(cacheId, result);
 
     return result;
 }
