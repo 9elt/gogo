@@ -26,19 +26,15 @@ export function dumpStatusful(value: Statusful[]) {
     localStorage.setItem(LSK_STATUSFUL, serialize(value));
 }
 
-const IMAGE_URI = "https://gogocdn.net/cover";
-
 export function serialize(values: Statusful[]) {
     let result = SER_VERSION;
 
     for (const value of values) {
         result += value.title
             + "\n"
-            + (value.urlTitle === safeurl(value.title) ? "@T" : value.urlTitle)
+            + value.urlTitle
             + "\n"
             + value.image
-                .replace(IMAGE_URI, "@U")
-                .replace(value.urlTitle, "@T")
             + "\n"
             + value.status
             + "\n\n";
@@ -58,10 +54,6 @@ function deserialize(value: string): Statusful[] {
     for (let i = 0; i < values.length; i++) {
         let [title, urlTitle, image, status] = values[i].split("\n");
 
-        if (urlTitle === "@T") {
-            urlTitle = safeurl(title);
-        }
-
         if (!title || !urlTitle || !image || !status) {
             console.warn("failed to parse statusful item", values[i]);
             continue;
@@ -70,19 +62,10 @@ function deserialize(value: string): Statusful[] {
         result[i] = {
             title,
             urlTitle,
-            image: image
-                .replace("@U", IMAGE_URI)
-                .replace("@T", urlTitle),
+            image,
             status: Number(status) as Status,
         };
     }
 
     return result;
-}
-
-function safeurl(title: string) {
-    return title
-        .replace(/[^a-z0-9]/gi, "-")
-        .replace(/(-)+/g, "-")
-        .toLowerCase();
 }
