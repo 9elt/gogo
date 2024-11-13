@@ -79,6 +79,6 @@ function deserialize(value: string): Statusful[] {
 function safeurl(title: string) {
     return title
         .replace(/[^a-z0-9]/gi, "-")
-        .replace(/--/g, "-")
+        .replace(/(-)+/g, "-")
         .toLowerCase();
 }
