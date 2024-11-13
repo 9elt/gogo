@@ -25,14 +25,23 @@ export const results = search.asyncAs(async (search) =>
 
 export const urlTitle = new UrlState<string>("title", String);
 
+const headTitle = document.querySelector("head>title")!;
+const originalTitle = headTitle.textContent;
+
 export const details = urlTitle.asyncAs(async (urlTitle) => {
-    const details = urlTitle === null ? null : await getDetails(urlTitle)
+    const details = urlTitle === null
+        ? null
+        : await getDetails(urlTitle);
+
+    headTitle.textContent = details?.title || originalTitle;
+
     if (details && episodeNumber.value === null) {
         episodeNumber.value =
             epCache.get(urlTitle!) ||
             details.episodes[details.episodes.length - 1]
             || null;
     }
+
     return details;
 });
 
