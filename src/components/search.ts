@@ -1,5 +1,5 @@
 import type { MiniElement } from "@9elt/miniframe";
-import { Status, results, search, statusful, urlTitle } from "../global";
+import { Status, episodeNumber, results, search, statusful, urlTitle } from "../global";
 
 export const Search: MiniElement = {
     tagName: "div",
@@ -54,6 +54,7 @@ export const Search: MiniElement = {
                                 },
                                 children: [result.title],
                                 onclick: () => {
+                                    episodeNumber.value = null;
                                     urlTitle.value = result.urlTitle;
                                     search.value = null;
                                 },

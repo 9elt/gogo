@@ -1,5 +1,6 @@
 import { State } from "@9elt/miniframe";
 import {
+    Episode,
     getDetails,
     getEpisode,
     getReleases,
@@ -32,10 +33,11 @@ export const details = urlTitle.asyncAs(async (urlTitle) => {
     return details;
 });
 
-export const episodeNumber = new UrlState<number>("episode", Number);
+export const episodeNumber = new State<number | null>(null);
 
-export const episode = episodeNumber.asyncAs(async (episodeNumber) =>
-    urlTitle.value && episodeNumber !== null
+export const episode = new State<Episode | null>(null);
+episodeNumber.sub(async (episodeNumber) =>
+    episode.value = urlTitle.value && episodeNumber !== null
         ? await getEpisode(urlTitle.value, episodeNumber)
         : null
 );
