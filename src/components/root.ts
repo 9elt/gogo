@@ -14,7 +14,8 @@ export const Root: MiniElement = {
         children: [
             Search,
             State.use({ releases, details, episode }).as((g) =>
-                g.details === undefined
+                g.episode === undefined
+                    || g.details === undefined
                     || g.releases === undefined
                     ? Loading
                     : g.details

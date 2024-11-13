@@ -8,7 +8,7 @@ import {
     type SearchResult
 } from "./lib/gogo";
 import { Status, Statusful, dumpStatusful, loadStatusful } from "./lib/statusful";
-import { UrlState } from "./lib/url.state";
+import { AsyncState, UrlState } from "./lib/states";
 
 export const page = new UrlState("page", Number);
 page.value ||= 1;
@@ -33,11 +33,10 @@ export const details = urlTitle.asyncAs(async (urlTitle) => {
     return details;
 });
 
-export const episodeNumber = new State<number | null>(null);
+export const episodeNumber = new AsyncState<number | null>(null);
 
-export const episode = new State<Episode | null>(null);
-episodeNumber.sub(async (episodeNumber) =>
-    episode.value = urlTitle.value && episodeNumber !== null
+export const episode = episodeNumber.asyncAs(async (episodeNumber) =>
+    urlTitle.value && episodeNumber !== null
         ? await getEpisode(urlTitle.value, episodeNumber)
         : null
 );

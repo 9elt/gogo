@@ -2,7 +2,29 @@ import { State } from "@9elt/miniframe";
 
 type ToString = { toString: () => string; };
 
-export class UrlState<T extends ToString> extends State<T | null> {
+export class AsyncState<T> extends State<T> {
+    constructor(value: T) {
+        super(value);
+    }
+
+    asyncAs<C>(fn: (value: T | null) => Promise<C | null>) {
+        const child = new State<
+            // value
+            | C
+            | null
+            // first loading
+            | undefined
+        >(undefined);
+
+        this.sub(async (value) => {
+            child.value = await fn(value);
+        })(this.value, this.value);
+
+        return child;
+    }
+}
+
+export class UrlState<T extends ToString> extends AsyncState<T | null> {
     constructor(
         key: string,
         as: ((value: string) => T | null)
@@ -33,21 +55,5 @@ export class UrlState<T extends ToString> extends State<T | null> {
             const query = new URLSearchParams(window.location.search).get(key);
             this.value = query !== null ? as(query) : null;
         });
-    }
-
-    asyncAs<C>(fn: (value: T | null) => Promise<C | null>) {
-        const child = new State<
-            // value
-            | C
-            | null
-            // first loading
-            | undefined
-        >(undefined);
-
-        this.sub(async (value) => {
-            child.value = await fn(value);
-        })(this.value, this.value);
-
-        return child;
     }
 }
