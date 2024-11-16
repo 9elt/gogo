@@ -457,7 +457,8 @@ class StateRef {
     this.refs = [];
   }
   sub(f) {
-    return this.ref.sub(f);
+    this.refs.push(this.ref.sub(f));
+    return f;
   }
   as(f) {
     const child = new State(f(this.ref.value));
@@ -640,9 +641,7 @@ function ExpandableText(text, limit) {
         onkeydown: (e) => {
           e.key === "Enter" && onclick();
         },
-        children: [
-          isOpen.as((isOpen2) => isOpen2 ? " close" : "...")
-        ]
+        children: [isOpen.as((isOpen2) => isOpen2 ? " close" : "...")]
       }
     ]
   };
@@ -736,9 +735,7 @@ function EpisodeDetails(_details, _statusful, episodeNumber2) {
                   },
                   {
                     tagName: "i",
-                    children: [
-                      _details.alias.join(" \u2022 ")
-                    ]
+                    children: [_details.alias.join(" \u2022 ")]
                   }
                 ]
               }
@@ -957,7 +954,7 @@ var Footer = {
 function SearchResult(result, statusful3) {
   const status = statusful3.as((statusful4) => statusful4.find((s) => s.urlTitle === result.urlTitle)?.status);
   let fetched = false;
-  let tId;
+  let tId = null;
   const prefetch = () => {
     if (!fetched) {
       tId = setTimeout(() => {
@@ -1019,7 +1016,7 @@ var statusfulRef2 = new StateRef(statusful2);
 var SearchInput = createNode({
   tagName: "input",
   className: "search-input",
-  type: "search",
+  type: "text",
   placeholder: isMobile ? "Search" : "Type '/' to search",
   value: search.as((search3) => search3 || ""),
   oninput: debounce((e) => {
@@ -1117,7 +1114,7 @@ var Header = {
 function Card(entry, statusful3) {
   const status = statusful3.as((_statusful) => _statusful.find((s) => s.urlTitle === entry.urlTitle)?.status);
   let fetched = false;
-  let tId;
+  let tId = null;
   const prefetch = () => {
     if (!fetched) {
       tId = setTimeout(() => {

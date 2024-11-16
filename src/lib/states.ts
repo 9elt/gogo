@@ -66,7 +66,8 @@ export class StateRef<T> {
         this.refs = [];
     }
     sub(f: Sub<T>) {
-        return this.ref.sub(f);
+        this.refs.push(this.ref.sub(f));
+        return f;
     }
     as<A>(f: (value: T) => A): State<A> {
         const child = new State<A>(f(this.ref.value));

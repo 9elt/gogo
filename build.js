@@ -25,7 +25,7 @@ const cssFiles = (await readdir(config.stylesdir)).sort((a, b) =>
 
 for (const name of cssFiles) {
     try {
-        css += "\n/* " + name + " */\n";
+        css += "/* " + name + " */\n";
         css += await Bun.file(config.stylesdir + '/' + name).text();
     }
     catch (error) {

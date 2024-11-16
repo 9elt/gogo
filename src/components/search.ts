@@ -9,7 +9,7 @@ const statusfulRef = new StateRef(statusful);
 const SearchInput = createNode({
     tagName: "input",
     className: "search-input",
-    type: "search",
+    type: "text",
     placeholder: isMobile ? "Search" : "Type '/' to search",
     value: search.as((search) => search || ""),
     oninput: debounce((e: any) => {
