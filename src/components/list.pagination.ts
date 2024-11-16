@@ -1,4 +1,4 @@
-export function Pagination(
+export function ListPagination(
     page: number | null,
     max: number,
     onclick: (page: number) => void
@@ -13,18 +13,16 @@ export function Pagination(
     const jump = right - 1;
 
     let start = Math.min(
-        page < size ? 1 :
-            (
-                Math.ceil((page - right) / jump) * jump
-            )
-            - jump
-            + right,
+        page < size
+            ? 1
+            : Math.ceil((page - right) / jump) * jump -
+                  jump +
+                  right,
         max + 1 - size
     );
 
     const values = new Array<number>(
-        start < 1 ? size - 1 + start :
-            size
+        start < 1 ? size - 1 + start : size
     );
 
     if (start < 1) {
@@ -37,14 +35,14 @@ export function Pagination(
 
     return {
         tagName: "div",
-        className: "pagination",
+        className: "list-pagination",
         children: values.map((value) => ({
             tagName: "button",
             children: [value],
             disabled: value === page,
             className: value === page && "active",
             onclick: () => {
-                onclick(value)
+                onclick(value);
             },
         })),
     };

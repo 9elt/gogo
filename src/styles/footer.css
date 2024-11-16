@@ -1,0 +1,10 @@
+footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 80px;
+    margin-bottom: 16px;
+}
+
+footer > * {
+    margin: 0 8px;
+}

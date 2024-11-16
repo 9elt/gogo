@@ -3,10 +3,14 @@
         "@9elt/miniframe": "^0.8.4"
     },
     "devDependencies": {
-        "http-server": "^14.1.1"
+        "@types/clean-css": "^4.2.11",
+        "clean-css": "^5.3.3",
+        "http-server": "^14.1.1",
+        "prettier": "^3.3.3"
     },
     "scripts": {
-        "build": "bun build.js && cp src/index.html docs/index.html && cp src/index.css docs/index.css && cp -r media/* docs",
-        "dev": "http-server"
+        "build": "bun build.js && cp -r media/* docs",
+        "dev": "http-server",
+        "format": "prettier --write \"src/**/*.{ts,css}\""
     }
 }

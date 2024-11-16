@@ -13,7 +13,10 @@ export type Episode = {
     }[];
 };
 
-export async function getEpisode(name: string, episode: number): Promise<Episode> {
+export async function getEpisode(
+    name: string,
+    episode: number
+): Promise<Episode> {
     const cacheId = "GET episode" + name + episode;
     const cached = cache.get(cacheId);
 
@@ -21,7 +24,13 @@ export async function getEpisode(name: string, episode: number): Promise<Episode
         return cached;
     }
 
-    const raw = await fetch(GOGO_URL + "/" + name + "-episode-" + episode.toString().replace(".", "-"));
+    const raw = await fetch(
+        GOGO_URL +
+            "/" +
+            name +
+            "-episode-" +
+            episode.toString().replace(".", "-")
+    );
 
     if (!raw.ok) {
         throw new Error("failed to fetch details");
@@ -38,7 +47,9 @@ export async function getEpisode(name: string, episode: number): Promise<Episode
 
     for (let i = 0; i < _links.length; i++) {
         const _li = _links[i];
-        const _a = _li.querySelector("a[data-video]") as HTMLAnchorElement | null;
+        const _a = _li.querySelector(
+            "a[data-video]"
+        ) as HTMLAnchorElement | null;
 
         const server = _li.className
             .replace("server", "")
@@ -84,9 +95,12 @@ export function getDetailsCacheId(urlTitle: string) {
     return "GET details" + urlTitle;
 }
 
-export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
+export async function getDetails(
+    urlTitle: string
+): Promise<EpisodeDetails> {
     const cacheId = getDetailsCacheId(urlTitle);
-    const cached = prefetcher.get(cacheId) || cache.get(cacheId);
+    const cached =
+        prefetcher.get(cacheId) || cache.get(cacheId);
 
     if (cached) {
         return cached;
@@ -100,9 +114,9 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
 
     _TMP.innerHTML = sanitize(await raw.text());
 
-    const title = _TMP
-        .querySelector(".anime_info_body_bg>h1")
-        ?.textContent;
+    const title = _TMP.querySelector(
+        ".anime_info_body_bg>h1"
+    )?.textContent;
 
     const episodeListId = _TMP
         .querySelector("input#movie_id")
@@ -125,7 +139,9 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
         lastEpisode = Math.max(lastEpisode, Number(end));
     }
 
-    const _items = _TMP.querySelectorAll(".anime_info_body_bg>p.type");
+    const _items = _TMP.querySelectorAll(
+        ".anime_info_body_bg>p.type"
+    );
 
     const data: {
         genres?: string[];
@@ -149,13 +165,17 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
 
         switch (key) {
             case "Genre:":
-                data.genres = text.split(/,|;/).map((genre) => genre.trim());
+                data.genres = text
+                    .split(/,|;/)
+                    .map((genre) => genre.trim());
                 break;
             case "Released:":
                 data.release = Number(text);
                 break;
             case "Other name:":
-                data.alias = text.split(/,|;/).map((alias) => alias.trim());
+                data.alias = text
+                    .split(/,|;/)
+                    .map((alias) => alias.trim());
                 break;
             case "Status:":
                 data.status = text as EpisodeStatus;
@@ -163,21 +183,26 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
         }
     }
 
-    const description = _TMP
-        .querySelector(".description")
-        ?.textContent || "no description provided.";
+    const description =
+        _TMP.querySelector(".description")?.textContent ||
+        "no description provided.";
 
     const image = (
-        _TMP.querySelector(".anime_info_body_bg>img") as HTMLImageElement | null
-    )
-        ?.dataset.src;
+        _TMP.querySelector(
+            ".anime_info_body_bg>img"
+        ) as HTMLImageElement | null
+    )?.dataset.src;
 
     if (!title || !episodeListId || !description || !image) {
         console.error(
-            "title", title,
-            "episodeListId", episodeListId,
-            "description", description,
-            "image", image
+            "title",
+            title,
+            "episodeListId",
+            episodeListId,
+            "description",
+            description,
+            "image",
+            image
         );
         throw new Error("failed to parse details");
     }
@@ -187,8 +212,14 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
     const result = {
         title,
         urlTitle,
-        episodes: lastEpisode === 0 ? [] :
-            await getEpisodeList(episodeListId, 0, lastEpisode),
+        episodes:
+            lastEpisode === 0
+                ? []
+                : await getEpisodeList(
+                      episodeListId,
+                      0,
+                      lastEpisode
+                  ),
         description,
         image,
         ...data,
@@ -199,8 +230,21 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
     return result;
 }
 
-export async function getEpisodeList(id: string, from: number = 0, to: number = 99) {
-    const raw = await fetch(GOGO_CDN_URL + "/ajax/load-list-episode?ep_start=" + from + "&ep_end=" + to + "&id=" + id + "&default_ep=0");
+export async function getEpisodeList(
+    id: string,
+    from: number = 0,
+    to: number = 99
+) {
+    const raw = await fetch(
+        GOGO_CDN_URL +
+            "/ajax/load-list-episode?ep_start=" +
+            from +
+            "&ep_end=" +
+            to +
+            "&id=" +
+            id +
+            "&default_ep=0"
+    );
 
     if (!raw.ok) {
         throw new Error("failed to fetch episode list");
@@ -217,8 +261,7 @@ export async function getEpisodeList(id: string, from: number = 0, to: number = 
 
         const episode = _li
             .querySelector(".name")
-            ?.textContent
-            ?.replace("EP ", "");
+            ?.textContent?.replace("EP ", "");
 
         if (!episode) {
             console.warn("failed to parse item", _li);
@@ -239,7 +282,9 @@ export type SearchResult = {
     image: string;
 };
 
-export async function getSearch(search: string): Promise<SearchResult[]> {
+export async function getSearch(
+    search: string
+): Promise<SearchResult[]> {
     const cacheId = "GET search" + search;
     const cached = cache.get(cacheId);
 
@@ -247,7 +292,12 @@ export async function getSearch(search: string): Promise<SearchResult[]> {
         return cached;
     }
 
-    const raw = await fetch(GOGO_CDN_URL + "/site/loadAjaxSearch?keyword=" + encodeURI(search) + "&id=-1");
+    const raw = await fetch(
+        GOGO_CDN_URL +
+            "/site/loadAjaxSearch?keyword=" +
+            encodeURI(search) +
+            "&id=-1"
+    );
 
     if (!raw.ok) {
         throw new Error("failed to fetch search result");
@@ -255,7 +305,9 @@ export async function getSearch(search: string): Promise<SearchResult[]> {
 
     _TMP.innerHTML = sanitize((await raw.json()).content);
 
-    const _divs = _TMP.querySelectorAll("#header_search_autocomplete_body>div");
+    const _divs = _TMP.querySelectorAll(
+        "#header_search_autocomplete_body>div"
+    );
 
     const result = new Array<SearchResult>(_divs.length);
 
@@ -266,13 +318,18 @@ export async function getSearch(search: string): Promise<SearchResult[]> {
 
         const urlTitle = _div
             .querySelector("a")
-            ?.href
-            .replace(window.location.origin + window.location.pathname, "")
+            ?.href.replace(
+                window.location.origin +
+                    window.location.pathname,
+                ""
+            )
             .replace("category/", "");
 
-        const image = (_div.querySelector(".thumbnail-recent_search") as HTMLDivElement)
-            ?.style
-            .background
+        const image = (
+            _div.querySelector(
+                ".thumbnail-recent_search"
+            ) as HTMLDivElement
+        )?.style.background
             .replace('url("', "")
             .replace('")', "");
 
@@ -302,7 +359,9 @@ export type Release = {
     episode: number;
 };
 
-export async function getReleases(page: number): Promise<Release[]> {
+export async function getReleases(
+    page: number
+): Promise<Release[]> {
     const cacheId = "GET releases" + page;
     const cached = cache.get(cacheId);
 
@@ -310,7 +369,12 @@ export async function getReleases(page: number): Promise<Release[]> {
         return cached;
     }
 
-    const raw = await fetch(GOGO_CDN_URL + "/ajax/page-recent-release.html?page=" + page + "&type=1");
+    const raw = await fetch(
+        GOGO_CDN_URL +
+            "/ajax/page-recent-release.html?page=" +
+            page +
+            "&type=1"
+    );
 
     if (!raw.ok) {
         throw new Error("failed to fetch recent releases");
@@ -329,8 +393,7 @@ export async function getReleases(page: number): Promise<Release[]> {
 
         const urlTitle = _li
             .querySelector("a")
-            ?.href
-            .replace(window.location.origin, "")
+            ?.href.replace(window.location.origin, "")
             .replace(/-episode-\d+/, "")
             .replace("/", "");
 
@@ -338,8 +401,7 @@ export async function getReleases(page: number): Promise<Release[]> {
 
         const episode = _li
             .querySelector(".episode")
-            ?.textContent
-            ?.replace("Episode ", "");
+            ?.textContent?.replace("Episode ", "");
 
         if (!title || !urlTitle || !image || !episode) {
             console.warn("failed to parse item", _li);
@@ -362,11 +424,13 @@ export async function getReleases(page: number): Promise<Release[]> {
 }
 
 function sanitize(html: string) {
-    return html
-        .replace(/<script.*?>.*?<\/script>/g, "")
-        .replace(/<link.*?>/g, "")
-        .replace(/<style.*?>.*?<\/style>/g, "")
-        .replace(/<head>.*?<\/head>/g, "")
-        // @ts-ignore
-        .replaceAll("src=", "data-src=");
+    return (
+        html
+            .replace(/<script.*?>.*?<\/script>/g, "")
+            .replace(/<link.*?>/g, "")
+            .replace(/<style.*?>.*?<\/style>/g, "")
+            .replace(/<head>.*?<\/head>/g, "")
+            // @ts-ignore
+            .replaceAll("src=", "data-src=")
+    );
 }

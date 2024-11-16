@@ -530,9 +530,9 @@ var urlTitle = new UrlState(QK_TITLE, String);
 var Route;
 (function(Route2) {
   Route2[Route2["Home"] = 0] = "Home";
-  Route2[Route2["Player"] = 1] = "Player";
+  Route2[Route2["Episode"] = 1] = "Episode";
 })(Route || (Route = {}));
-var route = urlTitle.as((title) => title === null ? Route.Home : Route.Player);
+var route = urlTitle.as((title) => title === null ? Route.Home : Route.Episode);
 var headTitle = document.querySelector("head>title");
 var originalTitle = headTitle.textContent;
 var details = urlTitle.asyncAs(async (urlTitle2) => {
@@ -579,7 +579,10 @@ statusful2.sub((_statusful) => {
   const maxPage = Math.ceil(_statusful.length / WATCHING_PAGE_SIZE);
   watchingPage.value = Math.min(watchingPage.value || 0, maxPage);
 });
-var watching = State.use({ watchingPage, statusful: statusful2 }).as((g) => {
+var watching = State.use({
+  watchingPage,
+  statusful: statusful2
+}).as((g) => {
   const maxPage = Math.ceil(g.statusful.length / WATCHING_PAGE_SIZE);
   g.watchingPage ||= 1;
   if (g.watchingPage > maxPage) {
@@ -595,6 +598,18 @@ var watching = State.use({ watchingPage, statusful: statusful2 }).as((g) => {
 // src/util.ts
 function randomDelay() {
   return (Math.random() * 300).toFixed(0) + "ms";
+}
+function debounce(f, ms) {
+  let timeout = null;
+  return function(...args) {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => {
+      f(...args);
+      timeout = null;
+    }, ms);
+  };
 }
 var isMobile = matchMedia("(max-width: 768px)").matches;
 
@@ -633,8 +648,8 @@ function ExpandableText(text, limit) {
   };
 }
 
-// src/components/details.ts
-function Details(_details, _statusful, episodeNumber2) {
+// src/components/episode.details.ts
+function EpisodeDetails(_details, _statusful, episodeNumber2) {
   const status = _statusful.as((_statusful2) => _statusful2.find((s) => s.urlTitle === _details.urlTitle)?.status);
   const next = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) - 1] || null);
   const previous = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) + 1] || null);
@@ -649,11 +664,11 @@ function Details(_details, _statusful, episodeNumber2) {
   }
   return {
     tagName: "div",
-    className: status.as((status2) => status2 === Status.Watching ? "details-container watching" : "details-container"),
+    className: status.as((status2) => status2 === Status.Watching ? "episode-header watching" : "episode-header"),
     children: [
       {
         tagName: "div",
-        className: "details",
+        className: "data",
         style: {},
         children: [
           {
@@ -671,7 +686,7 @@ function Details(_details, _statusful, episodeNumber2) {
           },
           {
             tagName: "div",
-            className: "data",
+            className: "info",
             children: [
               {
                 tagName: "button",
@@ -733,7 +748,7 @@ function Details(_details, _statusful, episodeNumber2) {
       },
       _details.episodes.length > 0 && {
         tagName: "div",
-        className: "episode-buttons",
+        className: "episode-controls",
         children: [
           {
             tagName: "button",
@@ -774,75 +789,33 @@ function Details(_details, _statusful, episodeNumber2) {
     ]
   };
 }
-function EpisodePlayer(_episode) {
-  const lastServer = localStorage.getItem(LSK_SERVER);
-  const src = new State(_episode.links.find((item) => item.server === lastServer)?.href || _episode.links[0].href);
-  const iframe = createNode({
-    tagName: "iframe",
-    className: "player-iframe",
-    src
-  });
-  iframe.setAttribute("allowfullscreen", "true");
-  iframe.setAttribute("frameborder", "0");
-  iframe.setAttribute("marginwidth", "0");
-  iframe.setAttribute("marginheight", "0");
-  iframe.setAttribute("scrolling", "no");
-  return {
-    tagName: "div",
-    className: "player",
-    children: [
-      iframe,
-      {
-        tagName: "div",
-        className: "server-list",
-        children: [
-          {
-            tagName: "small",
-            children: ["servers"]
-          },
-          ..._episode.links.map((item) => ({
-            tagName: "button",
-            className: src.as((src2) => src2 === item.href && "active"),
-            children: [
-              item.server
-            ],
-            onclick: () => {
-              src.value = item.href;
-              localStorage.setItem(LSK_SERVER, item.server);
-            }
-          }))
-        ]
-      }
-    ]
-  };
-}
-var DetailsLoading = {
+var EpisodeDetailsLoading = {
   tagName: "div",
-  className: "details-container loading",
+  className: "episode-header loading",
   children: [
     {
       tagName: "div",
-      className: "details",
+      className: "data",
       children: [
         {
           tagName: "div",
+          className: "image",
           style: {
             animationDelay: randomDelay()
-          },
-          className: "image"
+          }
         },
         {
           tagName: "div",
+          className: "info",
           style: {
             animationDelay: randomDelay()
-          },
-          className: "data"
+          }
         }
       ]
     },
     {
       tagName: "div",
-      className: "episode-buttons",
+      className: "episode-controls",
       children: [
         {
           tagName: "button",
@@ -870,8 +843,50 @@ var DetailsLoading = {
     }
   ]
 };
+
+// src/components/episode.player.ts
+function EpisodePlayer(_episode) {
+  const lastServer = localStorage.getItem(LSK_SERVER);
+  const src = new State(_episode.links.find((item) => item.server === lastServer)?.href || _episode.links[0].href);
+  const iframe = createNode({
+    tagName: "iframe",
+    className: "player-iframe",
+    src
+  });
+  iframe.setAttribute("allowfullscreen", "true");
+  iframe.setAttribute("frameborder", "0");
+  iframe.setAttribute("marginwidth", "0");
+  iframe.setAttribute("marginheight", "0");
+  iframe.setAttribute("scrolling", "no");
+  return {
+    tagName: "div",
+    className: "player",
+    children: [
+      iframe,
+      {
+        tagName: "div",
+        className: "player-server-list",
+        children: [
+          {
+            tagName: "small",
+            children: ["servers"]
+          },
+          ..._episode.links.map((item) => ({
+            tagName: "button",
+            className: src.as((src2) => src2 === item.href && "active"),
+            children: [item.server],
+            onclick: () => {
+              src.value = item.href;
+              localStorage.setItem(LSK_SERVER, item.server);
+            }
+          }))
+        ]
+      }
+    ]
+  };
+}
 var LSK_SERVER = "server";
-var PlayerLoading = {
+var EpisodePlayerLoading = {
   tagName: "div",
   className: "player loading",
   children: [
@@ -881,7 +896,7 @@ var PlayerLoading = {
     },
     {
       tagName: "div",
-      className: "server-list",
+      className: "player-server-list",
       children: [
         {
           tagName: "small",
@@ -903,6 +918,196 @@ var PlayerLoading = {
           tagName: "button",
           children: ["mp4upload"]
         }
+      ]
+    }
+  ]
+};
+
+// src/components/episode.ts
+var statusfulRef = new StateRef(statusful2);
+var episodeNumberRef = new StateRef(episodeNumber);
+var Episode = [
+  details.as((_details) => {
+    statusfulRef.clear();
+    episodeNumberRef.clear();
+    return _details ? EpisodeDetails(_details, statusfulRef, episodeNumberRef) : EpisodeDetailsLoading;
+  }),
+  episode.as((_episode) => _episode === -1 ? null : _episode ? EpisodePlayer(_episode) : EpisodePlayerLoading)
+];
+
+// src/components/footer.ts
+var Footer = {
+  tagName: "footer",
+  children: [
+    {
+      tagName: "small",
+      children: [
+        "This is an alternative client for ",
+        {
+          tagName: "a",
+          href: GOGO_URL,
+          children: ["gogoanime"]
+        }
+      ]
+    }
+  ]
+};
+
+// src/components/search.result.ts
+function SearchResult(result, statusful3) {
+  const status = statusful3.as((statusful4) => statusful4.find((s) => s.urlTitle === result.urlTitle)?.status);
+  let fetched = false;
+  let tId;
+  const prefetch = () => {
+    if (!fetched) {
+      tId = setTimeout(() => {
+        if (!fetched) {
+          const id = getDetailsCacheId(result.urlTitle);
+          const _result = getDetails(result.urlTitle);
+          prefetcher.add(id, _result);
+          fetched = true;
+        }
+      }, 500);
+    }
+  };
+  const cancel = () => {
+    tId && clearTimeout(tId);
+  };
+  const onclick = () => {
+    cancel();
+    fetched = true;
+    episodeNumber.value = null;
+    urlTitle.value = result.urlTitle;
+    search.value = null;
+  };
+  return {
+    tagName: "div",
+    tabIndex: 0,
+    className: status.as((status2) => status2 === Status.Watching ? "search-result watching" : "search-result"),
+    onmouseenter: prefetch,
+    onmouseleave: cancel,
+    onfocus: prefetch,
+    onblur: cancel,
+    onclick,
+    onkeydown: (e) => {
+      e.key === "Enter" && onclick();
+    },
+    children: [
+      {
+        tagName: "div",
+        className: "image",
+        style: {
+          backgroundImage: "url(" + encodeURI(result.image) + ")"
+        },
+        children: [
+          {
+            tagName: "div",
+            className: "status-bar"
+          }
+        ]
+      },
+      {
+        tagName: "p",
+        children: [result.title]
+      }
+    ]
+  };
+}
+
+// src/components/search.ts
+var statusfulRef2 = new StateRef(statusful2);
+var SearchInput = createNode({
+  tagName: "input",
+  className: "search-input",
+  type: "search",
+  placeholder: isMobile ? "Search" : "Type '/' to search",
+  value: search.as((search3) => search3 || ""),
+  oninput: debounce((e) => {
+    search.value = e.target.value.trim() || null;
+  }, 1000)
+});
+var Search = createNode({
+  tagName: "div",
+  className: "search-container",
+  children: [
+    {
+      tagName: "div",
+      className: "search-input-container",
+      children: [
+        SearchInput,
+        search.as((_search) => _search !== null && {
+          tagName: "span",
+          className: "search-input-adornment",
+          children: ["\u2715"],
+          onclick: () => {
+            if (search.value !== null) {
+              search.value = null;
+            }
+          }
+        })
+      ]
+    },
+    results.as((results2) => {
+      statusfulRef2.clear();
+      return results2 && {
+        tagName: "div",
+        tabIndex: -1,
+        className: "search-results",
+        children: results2.length === 0 ? [
+          {
+            tagName: "p",
+            className: "no-search-results",
+            children: ["no results"]
+          }
+        ] : results2.map((result) => SearchResult(result, statusfulRef2))
+      };
+    })
+  ]
+});
+window.addEventListener("keydown", (e) => {
+  if (document.activeElement?.tagName !== "INPUT" && e.key === "/") {
+    e.preventDefault();
+    SearchInput.focus();
+  }
+});
+window.addEventListener("keydown", (e) => {
+  if (search.value !== null && e.key === "Escape") {
+    search.value = null;
+  }
+});
+window.addEventListener("click", (e) => {
+  if (search.value !== null && !Search.contains(e.target)) {
+    search.value = null;
+  }
+});
+
+// src/components/logo.ts
+var Logo = `<svg viewBox="0 0 305 91" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M110.458 4C100.458 4 91.1704 13.213 79.9578 33C71.4578 48 68.9578 74.5 76.4578 82C83.9578 89.5 99.9578 90.5 111.958 90.5C123.958 90.5 135.458 90.5 143.958 83C152.458 75.5 148.958 45.5 137.958 27.5C126.958 9.5 118.958 4 110.458 4ZM110.458 15.5C103.958 15.5 92.9051 31 88.9578 41C80.4709 62.5 81.9578 71 85.4578 75C88.9578 79 107.958 79.5 111.958 79.5C115.958 79.5 133.958 78 135.958 75C137.958 72 140.208 59.5 130.958 41C127.458 34 117.958 15.5 110.458 15.5Z"/>
+<path d="M55.724 0.0130428C48.524 -0.386957 48.3907 8.51304 49.224 13.013C35.224 21.013 13.224 43.013 3.22398 68.013C-6.77602 93.013 9.22398 89.513 14.224 89.513C19.224 89.513 49.224 89.013 55.724 89.513C62.224 90.013 66.724 83.513 63.224 64.513C59.724 45.513 44.724 59.013 37.224 69.513C29.724 80.013 38.724 74.513 42.724 72.513C46.724 70.513 51.224 66.513 55.724 71.013C60.224 75.513 56.724 88.513 29.224 81.013C1.72399 73.513 30.724 42.513 38.724 32.013C46.724 21.513 53.724 26.513 57.724 26.513C61.724 26.513 63.224 20.013 63.224 16.513C63.224 13.013 64.724 0.513043 55.724 0.0130428Z"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M266.458 4C256.458 4 247.17 13.213 235.958 33C227.458 48 224.958 74.5 232.458 82C239.958 89.5 255.958 90.5 267.958 90.5C279.958 90.5 291.458 90.5 299.958 83C308.458 75.5 304.958 45.5 293.958 27.5C282.958 9.5 274.958 4 266.458 4ZM266.458 15.5C259.958 15.5 248.905 31 244.958 41C236.471 62.5 237.958 71 241.458 75C244.958 79 263.958 79.5 267.958 79.5C271.958 79.5 289.958 78 291.958 75C293.958 72 296.208 59.5 286.958 41C283.458 34 273.958 15.5 266.458 15.5Z"/>
+<path d="M211.724 0.0130428C204.524 -0.386957 204.391 8.51304 205.224 13.013C191.224 21.013 169.224 43.013 159.224 68.013C149.224 93.013 165.224 89.513 170.224 89.513C175.224 89.513 205.224 89.013 211.724 89.513C218.224 90.013 222.724 83.513 219.224 64.513C215.724 45.513 200.724 59.013 193.224 69.513C185.724 80.013 194.724 74.513 198.724 72.513C202.724 70.513 207.224 66.513 211.724 71.013C216.224 75.513 212.724 88.513 185.224 81.013C157.724 73.513 186.724 42.513 194.724 32.013C202.724 21.513 209.724 26.513 213.724 26.513C217.724 26.513 219.224 20.013 219.224 16.513C219.224 13.013 220.724 0.513043 211.724 0.0130428Z"/>
+</svg>`;
+
+// src/components/header.ts
+var Header = {
+  tagName: "header",
+  children: [
+    {
+      tagName: "div",
+      children: [
+        {
+          tagName: "button",
+          className: "logo",
+          innerHTML: Logo,
+          onclick: () => {
+            if (route.value !== Route.Home) {
+              urlTitle.value = null;
+              episodeNumber.value = null;
+            }
+          }
+        },
+        Search
       ]
     }
   ]
@@ -970,9 +1175,7 @@ function Card(entry, statusful3) {
         children: [
           {
             tagName: "span",
-            children: [
-              "\u2605"
-            ]
+            children: ["\u2605"]
           }
         ]
       }),
@@ -984,8 +1187,32 @@ function Card(entry, statusful3) {
   };
 }
 
-// src/components/pagination.ts
-function Pagination(page, max, onclick) {
+// src/components/list.footer.ts
+function ListFooter(Pagination) {
+  return {
+    tagName: "div",
+    className: "list-footer",
+    children: [Pagination]
+  };
+}
+
+// src/components/list.header.ts
+function ListHeader(Title, Pagination) {
+  return {
+    tagName: "div",
+    className: "list-header",
+    children: [
+      {
+        tagName: "h3",
+        children: [Title]
+      },
+      Pagination
+    ]
+  };
+}
+
+// src/components/list.pagination.ts
+function ListPagination(page, max, onclick) {
   if (page === null) {
     return 0;
   }
@@ -1003,7 +1230,7 @@ function Pagination(page, max, onclick) {
   }
   return {
     tagName: "div",
-    className: "pagination",
+    className: "list-pagination",
     children: values.map((value) => ({
       tagName: "button",
       children: [value],
@@ -1016,63 +1243,37 @@ function Pagination(page, max, onclick) {
   };
 }
 
-// src/components/releases.ts
-function Releases(_releases) {
-  statusfulRef.clear();
+// src/components/releases.list.ts
+function ReleasesList(_releases) {
+  statusfulRef3.clear();
   return {
     tagName: "div",
+    className: "releases-list",
     children: [
+      ListHeader("Recent Releases", ReleasesPagination),
       {
         tagName: "div",
-        className: "section-header",
-        children: [
-          {
-            tagName: "h3",
-            children: ["Recent Releases"]
-          },
-          ReleasesPagination
-        ]
+        className: "card-list",
+        children: _releases.map((_entry) => Card(_entry, statusfulRef3))
       },
-      {
-        tagName: "div",
-        className: "releases-list",
-        children: _releases.map((_entry) => Card(_entry, statusfulRef))
-      },
-      {
-        tagName: "div",
-        className: "section-footer",
-        children: [
-          ReleasesPagination
-        ]
-      }
+      ListFooter(ReleasesPagination)
     ]
   };
 }
-var ReleasesPagination = releasesPage.as((_page) => Pagination(_page, 99, (page) => {
+var statusfulRef3 = new StateRef(statusful2);
+var ReleasesPagination = releasesPage.as((_page) => ListPagination(_page, 99, (page) => {
   releasesPage.value = page;
 }));
-var statusfulRef = new StateRef(statusful2);
-var LoadingPagination = Pagination(1, 6, () => {
+var LoadingPagination = ListPagination(1, 6, () => {
 });
 var ReleasesLoading = {
   tagName: "div",
   className: "loading",
   children: [
+    ListHeader("Recent Releases", LoadingPagination),
     {
       tagName: "div",
-      className: "section-header",
-      children: [
-        {
-          tagName: "h3",
-          children: ["Recent Releases"]
-        },
-        LoadingPagination
-      ]
-    },
-    ,
-    {
-      tagName: "div",
-      className: "releases-list",
+      className: "card-list",
       children: new Array(8).fill(0).map(() => ({
         tagName: "div",
         className: "card loading",
@@ -1081,249 +1282,42 @@ var ReleasesLoading = {
         }
       }))
     },
-    {
-      tagName: "div",
-      className: "section-footer",
-      children: [
-        LoadingPagination
-      ]
-    }
+    ListFooter(LoadingPagination)
   ]
 };
 
-// src/components/search.ts
-var Result = function(result, statusful3) {
-  const status = statusful3.as((statusful4) => statusful4.find((s) => s.urlTitle === result.urlTitle)?.status);
-  let fetched = false;
-  let tId;
-  const prefetch = () => {
-    if (!fetched) {
-      tId = setTimeout(() => {
-        if (!fetched) {
-          const id = getDetailsCacheId(result.urlTitle);
-          const _result = getDetails(result.urlTitle);
-          prefetcher.add(id, _result);
-          fetched = true;
-        }
-      }, 500);
-    }
-  };
-  const cancel = () => {
-    tId && clearTimeout(tId);
-  };
-  const onclick = () => {
-    cancel();
-    fetched = true;
-    episodeNumber.value = null;
-    urlTitle.value = result.urlTitle;
-    search.value = null;
-  };
+// src/components/watching.list.ts
+function WatchingList(_watching) {
+  statusfulRef4.clear();
   return {
     tagName: "div",
-    tabIndex: 0,
-    className: status.as((status2) => status2 === Status.Watching ? "result watching" : "result"),
-    onmouseenter: prefetch,
-    onmouseleave: cancel,
-    onfocus: prefetch,
-    onblur: cancel,
-    onclick,
-    onkeydown: (e) => {
-      e.key === "Enter" && onclick();
-    },
+    className: "watching-list",
     children: [
+      ListHeader("Your Watchlist", WatchingPagination),
       {
         tagName: "div",
-        className: "image",
-        style: {
-          backgroundImage: "url(" + encodeURI(result.image) + ")"
-        },
-        children: [
-          {
-            tagName: "div",
-            className: "status-bar"
-          }
-        ]
+        className: "card-list",
+        children: _watching.data.map((_entry) => Card(_entry, statusfulRef4))
       },
-      {
-        tagName: "p",
-        children: [result.title]
-      }
-    ]
-  };
-};
-var debounce = function(f, ms) {
-  let timeout = null;
-  return function(...args) {
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-    timeout = setTimeout(() => {
-      f(...args);
-      timeout = null;
-    }, ms);
-  };
-};
-var statusfulRef2 = new StateRef(statusful2);
-var SearchInput = createNode({
-  tagName: "input",
-  type: "search",
-  placeholder: isMobile ? "Search" : "Type '/' to search",
-  value: search.as((search2) => search2 || ""),
-  oninput: debounce((e) => {
-    search.value = e.target.value.trim() || null;
-  }, 1000)
-});
-window.addEventListener("keydown", (e) => {
-  if (document.activeElement !== SearchInput && document.activeElement?.tagName !== "INPUT" && e.key === "/") {
-    e.preventDefault();
-    SearchInput.focus();
-  }
-});
-var Search = createNode({
-  tagName: "div",
-  className: "search-container",
-  children: [
-    {
-      tagName: "div",
-      className: "input-container",
-      children: [
-        SearchInput,
-        search.as((_search) => _search !== null && {
-          tagName: "span",
-          className: "input-adornment",
-          children: ["\u2715"],
-          onclick: () => {
-            if (search.value !== null) {
-              search.value = null;
-            }
-          }
-        })
-      ]
-    },
-    results.as((results2) => {
-      statusfulRef2.clear();
-      return results2 && {
-        tagName: "div",
-        tabIndex: -1,
-        className: "search-results",
-        children: results2.length === 0 ? [
-          {
-            tagName: "p",
-            className: "no-results",
-            children: ["no results"]
-          }
-        ] : results2.map((result) => Result(result, statusfulRef2))
-      };
-    })
-  ]
-});
-window.addEventListener("keydown", (e) => {
-  if (search.value !== null && e.key === "Escape") {
-    search.value = null;
-  }
-});
-window.addEventListener("click", (e) => {
-  if (search.value !== null && !Search.contains(e.target)) {
-    search.value = null;
-  }
-});
-
-// src/components/watching.ts
-function Watching(_watching) {
-  statusfulRef3.clear();
-  return {
-    tagName: "div",
-    children: [
-      {
-        tagName: "div",
-        className: "section-header",
-        children: [
-          {
-            tagName: "h3",
-            children: ["Your Watchlist"]
-          },
-          WatchingPagination
-        ]
-      },
-      {
-        tagName: "div",
-        className: "watching-list",
-        children: _watching.data.map((_entry) => Card(_entry, statusfulRef3))
-      },
-      {
-        tagName: "div",
-        className: "section-footer",
-        children: [
-          WatchingPagination
-        ]
-      }
+      ListFooter(WatchingPagination)
     ]
   };
 }
-var WatchingPagination = State.use({ watchingPage, watching }).as((g) => Pagination(g.watchingPage, g.watching.maxPage, (page) => {
+var statusfulRef4 = new StateRef(statusful2);
+var WatchingPagination = State.use({
+  watchingPage,
+  watching
+}).as((g) => ListPagination(g.watchingPage, g.watching.maxPage, (page) => {
   watchingPage.value = page;
 }));
-var statusfulRef3 = new StateRef(statusful2);
+
+// src/components/home.ts
+var Home = [
+  watching.as((watching3) => watching3.data.length > 0 && WatchingList(watching3)),
+  releases.as((_releases) => _releases ? ReleasesList(_releases) : ReleasesLoading)
+];
 
 // src/components/root.ts
-var Home = [
-  watching.as((watching3) => watching3.data.length > 0 && Watching(watching3)),
-  releases.as((_releases) => _releases ? Releases(_releases) : ReleasesLoading)
-];
-var statusfulRef4 = new StateRef(statusful2);
-var episodeNumberRef = new StateRef(episodeNumber);
-var Player = [
-  details.as((_details) => {
-    statusfulRef4.clear();
-    episodeNumberRef.clear();
-    return _details ? Details(_details, statusfulRef4, episodeNumberRef) : DetailsLoading;
-  }),
-  episode.as((_episode) => _episode === -1 ? null : _episode ? EpisodePlayer(_episode) : PlayerLoading)
-];
-var Logo = `<svg viewBox="0 0 305 91" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M110.458 4C100.458 4 91.1704 13.213 79.9578 33C71.4578 48 68.9578 74.5 76.4578 82C83.9578 89.5 99.9578 90.5 111.958 90.5C123.958 90.5 135.458 90.5 143.958 83C152.458 75.5 148.958 45.5 137.958 27.5C126.958 9.5 118.958 4 110.458 4ZM110.458 15.5C103.958 15.5 92.9051 31 88.9578 41C80.4709 62.5 81.9578 71 85.4578 75C88.9578 79 107.958 79.5 111.958 79.5C115.958 79.5 133.958 78 135.958 75C137.958 72 140.208 59.5 130.958 41C127.458 34 117.958 15.5 110.458 15.5Z"/>
-<path d="M55.724 0.0130428C48.524 -0.386957 48.3907 8.51304 49.224 13.013C35.224 21.013 13.224 43.013 3.22398 68.013C-6.77602 93.013 9.22398 89.513 14.224 89.513C19.224 89.513 49.224 89.013 55.724 89.513C62.224 90.013 66.724 83.513 63.224 64.513C59.724 45.513 44.724 59.013 37.224 69.513C29.724 80.013 38.724 74.513 42.724 72.513C46.724 70.513 51.224 66.513 55.724 71.013C60.224 75.513 56.724 88.513 29.224 81.013C1.72399 73.513 30.724 42.513 38.724 32.013C46.724 21.513 53.724 26.513 57.724 26.513C61.724 26.513 63.224 20.013 63.224 16.513C63.224 13.013 64.724 0.513043 55.724 0.0130428Z"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M266.458 4C256.458 4 247.17 13.213 235.958 33C227.458 48 224.958 74.5 232.458 82C239.958 89.5 255.958 90.5 267.958 90.5C279.958 90.5 291.458 90.5 299.958 83C308.458 75.5 304.958 45.5 293.958 27.5C282.958 9.5 274.958 4 266.458 4ZM266.458 15.5C259.958 15.5 248.905 31 244.958 41C236.471 62.5 237.958 71 241.458 75C244.958 79 263.958 79.5 267.958 79.5C271.958 79.5 289.958 78 291.958 75C293.958 72 296.208 59.5 286.958 41C283.458 34 273.958 15.5 266.458 15.5Z"/>
-<path d="M211.724 0.0130428C204.524 -0.386957 204.391 8.51304 205.224 13.013C191.224 21.013 169.224 43.013 159.224 68.013C149.224 93.013 165.224 89.513 170.224 89.513C175.224 89.513 205.224 89.013 211.724 89.513C218.224 90.013 222.724 83.513 219.224 64.513C215.724 45.513 200.724 59.013 193.224 69.513C185.724 80.013 194.724 74.513 198.724 72.513C202.724 70.513 207.224 66.513 211.724 71.013C216.224 75.513 212.724 88.513 185.224 81.013C157.724 73.513 186.724 42.513 194.724 32.013C202.724 21.513 209.724 26.513 213.724 26.513C217.724 26.513 219.224 20.013 219.224 16.513C219.224 13.013 220.724 0.513043 211.724 0.0130428Z"/>
-</svg>`;
-var Header = {
-  tagName: "header",
-  children: [
-    {
-      tagName: "div",
-      children: [
-        {
-          tagName: "button",
-          className: "logo",
-          innerHTML: Logo,
-          onclick: () => {
-            if (route.value !== Route.Home) {
-              urlTitle.value = null;
-              episodeNumber.value = null;
-            }
-          }
-        },
-        Search
-      ]
-    }
-  ]
-};
-var Footer = {
-  tagName: "footer",
-  children: [
-    {
-      tagName: "small",
-      children: [
-        "This is an alternative client for ",
-        {
-          tagName: "a",
-          href: GOGO_URL,
-          children: ["gogoanime"]
-        }
-      ]
-    }
-  ]
-};
 var Root = {
   tagName: "div",
   id: "root",
@@ -1332,11 +1326,11 @@ var Root = {
     {
       tagName: "main",
       children: route.as((route2) => {
-        route2 === Route.Player && setTimeout(() => scrollTo({
+        route2 === Route.Episode && setTimeout(() => scrollTo({
           top: 0,
           behavior: "smooth"
         }), 50);
-        return route2 === Route.Home ? Home : Player;
+        return route2 === Route.Home ? Home : Episode;
       })
     },
     Footer

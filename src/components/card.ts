@@ -14,8 +14,11 @@ export function Card(
     },
     statusful: StateRef<Statusful[]>
 ): MiniElement {
-    const status = statusful.as((_statusful) =>
-        _statusful.find((s) => s.urlTitle === entry.urlTitle)?.status
+    const status = statusful.as(
+        (_statusful) =>
+            _statusful.find(
+                (s) => s.urlTitle === entry.urlTitle
+            )?.status
     );
 
     let fetched = false;
@@ -24,7 +27,9 @@ export function Card(
         if (!fetched) {
             tId = setTimeout(() => {
                 if (!fetched) {
-                    const id = getDetailsCacheId(entry.urlTitle);
+                    const id = getDetailsCacheId(
+                        entry.urlTitle
+                    );
                     const result = getDetails(entry.urlTitle);
 
                     prefetcher.add(id, result);
@@ -32,11 +37,11 @@ export function Card(
                 }
             }, 500);
         }
-    }
+    };
 
     const cancel = () => {
         tId && clearTimeout(tId);
-    }
+    };
 
     const onclick = () => {
         cancel();
@@ -53,8 +58,9 @@ export function Card(
         tagName: "div",
         tabIndex: 0,
         className: status.as((status) =>
-            status === Status.Watching ? "card watching" :
-                "card"
+            status === Status.Watching
+                ? "card watching"
+                : "card"
         ),
         onmouseenter: prefetch,
         onmouseleave: cancel,
@@ -70,7 +76,9 @@ export function Card(
                 tagName: "div",
                 className: "image",
                 style: {
-                    backgroundImage: entry.image && "url(" + encodeURI(entry.image) + ")",
+                    backgroundImage:
+                        entry.image &&
+                        "url(" + encodeURI(entry.image) + ")",
                 },
             },
             // @ts-ignore
@@ -84,25 +92,24 @@ export function Card(
                 children: ["ep ", entry.episode],
             },
             // @ts-ignore
-            status.as((status) =>
-                status === Status.Watching && {
-                    tagName: "div",
-                    className: "status",
-                    children: [
-                        {
-                            tagName: "span",
-                            children: [
-                                "★",
-                            ]
-                        }
-                    ]
-                }
+            status.as(
+                (status) =>
+                    status === Status.Watching && {
+                        tagName: "div",
+                        className: "status",
+                        children: [
+                            {
+                                tagName: "span",
+                                children: ["★"],
+                            },
+                        ],
+                    }
             ),
             // @ts-ignore
             {
                 tagName: "div",
                 className: "status-bar",
-            }
+            },
         ],
     };
 }

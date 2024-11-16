@@ -12,7 +12,7 @@ export function ExpandableText(text: string, limit: number) {
 
     const onclick = () => {
         isOpen.value = !isOpen.value;
-    }
+    };
 
     return {
         tagName: "span",
@@ -32,11 +32,11 @@ export function ExpandableText(text: string, limit: number) {
                     e.key === "Enter" && onclick();
                 },
                 children: [
-                    isOpen.as(isOpen =>
+                    isOpen.as((isOpen) =>
                         isOpen ? " close" : "..."
-                    )
+                    ),
                 ],
-            }
-        ]
+            },
+        ],
     };
 }

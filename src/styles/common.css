@@ -1,0 +1,96 @@
+:root {
+    --accent-bright: #91daff;
+    --accent: #17a;
+    --accent-bright: #ffeab1;
+    --accent: #ffc119;
+    --max-width: 976px;
+    --header-background: #151515f2;
+    --header-height: 64px;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: "Roboto", sans-serif;
+    background-color: #111;
+    color: #eee;
+}
+
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+*:focus {
+    outline: 2px solid var(--accent-bright);
+    box-shadow: 0 0 4px var(--accent);
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    color: #eee;
+    font-size: 1rem;
+    background-color: transparent;
+}
+
+button.active {
+    background-color: #333;
+}
+
+a {
+    color: var(--accent);
+}
+
+main {
+    margin-top: calc(var(--header-height) + 12px);
+    margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+    main {
+        margin-top: calc(var(--header-height) + 4px);
+    }
+}
+
+#root {
+    position: relative;
+    max-width: var(--max-width);
+    min-height: 100%;
+    margin: 0 auto;
+    background-color: #17171717;
+}
+
+#background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(
+        145deg,
+        #111 25%,
+        #080808 100%
+    );
+}
+
+.loading {
+    pointer-events: none;
+}
+
+@keyframes loading {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 1;
+    }
+}

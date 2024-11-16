@@ -1,0 +1,53 @@
+.player {
+    margin-top: 8px;
+}
+
+.player .player-iframe {
+    background-color: #111;
+    background-color: #000;
+    width: 100%;
+    border: none;
+    height: 549px;
+}
+
+@media (max-width: 768px) {
+    .player .player-iframe {
+        height: calc(100vw * 9 / 16);
+    }
+}
+
+.loading .player-iframe {
+    animation: loading 1s infinite ease-in-out;
+}
+
+.player-server-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .player-server-list {
+        justify-content: center;
+    }
+}
+
+.player-server-list > * {
+    border-radius: 4px;
+}
+
+.loading .player-server-list > * {
+    background-color: #212121;
+    color: transparent;
+    animation: loading 1s infinite ease-in-out;
+}
+
+.player-server-list > small {
+    margin-right: 16px;
+}
+
+.player-server-list > button {
+    padding: 4px 8px;
+}

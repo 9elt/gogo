@@ -1,0 +1,39 @@
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    background-color: var(--header-background);
+}
+
+header > div {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-height);
+}
+
+header .logo {
+    display: flex;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+@media (max-width: 768px) {
+    header .logo {
+        margin-left: 5%;
+    }
+}
+
+header .logo svg {
+    width: 75px;
+    fill: var(--accent);
+}
+
+header .logo:focus svg {
+    fill: var(--accent-bright);
+    filter: drop-shadow(0 0 4px var(--accent));
+}

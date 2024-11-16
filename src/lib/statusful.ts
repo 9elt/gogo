@@ -4,7 +4,7 @@ export const STATUSFUL_MAX_SIZE = 64;
 
 export enum Status {
     Watching,
-};
+}
 
 export type Statusful = {
     title: string;
@@ -17,8 +17,7 @@ export function loadStatusful() {
     try {
         const raw = localStorage.getItem(LSK_STATUSFUL);
         return raw ? deserialize(raw) : [];
-    }
-    catch {
+    } catch {
         return [];
     }
 }
@@ -31,14 +30,15 @@ export function serialize(values: Statusful[]) {
     let result = SER_VERSION;
 
     for (const value of values) {
-        result += value.title
-            + "\n"
-            + value.urlTitle
-            + "\n"
-            + value.image
-            + "\n"
-            + value.status
-            + "\n\n";
+        result +=
+            value.title +
+            "\n" +
+            value.urlTitle +
+            "\n" +
+            value.image +
+            "\n" +
+            value.status +
+            "\n\n";
     }
 
     return result.slice(0, -2);
@@ -53,10 +53,14 @@ function deserialize(value: string): Statusful[] {
     const result = new Array<Statusful>(values.length);
 
     for (let i = 0; i < values.length; i++) {
-        let [title, urlTitle, image, status] = values[i].split("\n");
+        let [title, urlTitle, image, status] =
+            values[i].split("\n");
 
         if (!title || !urlTitle || !image || !status) {
-            console.warn("failed to parse statusful item", values[i]);
+            console.warn(
+                "failed to parse statusful item",
+                values[i]
+            );
             continue;
         }
 

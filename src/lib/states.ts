@@ -1,13 +1,16 @@
 import { State, type Sub } from "@9elt/miniframe";
 
-type ToString = { toString: () => string; };
+type ToString = { toString: () => string };
 
 export class AsyncState<T> extends State<T> {
     constructor(value: T) {
         super(value);
     }
 
-    asyncAs<C>(fn: (value: T) => Promise<C>, loadingStatus?: C) {
+    asyncAs<C>(
+        fn: (value: T) => Promise<C>,
+        loadingStatus?: C
+    ) {
         const child = new State<
             | C
             // NOTE: First load
@@ -18,25 +21,30 @@ export class AsyncState<T> extends State<T> {
             if (loadingStatus !== undefined) {
                 child.value = loadingStatus;
             }
-            fn(value).then((value) => child.value = value);
+            fn(value).then((value) => (child.value = value));
         })(this.value, this.value);
 
         return child;
     }
 }
 
-export class UrlState<T extends ToString> extends AsyncState<T | null> {
-    constructor(
-        key: string,
-        as: ((value: string) => T | null),
-    ) {
-        const query = new URLSearchParams(window.location.search).get(key);
+export class UrlState<
+    T extends ToString,
+> extends AsyncState<T | null> {
+    constructor(key: string, as: (value: string) => T | null) {
+        const query = new URLSearchParams(
+            window.location.search
+        ).get(key);
         super(query !== null ? as(query) : null);
 
         this.sub((value, prevValue) => {
             if (value !== prevValue) {
-                const url = window.location.origin + window.location.pathname;
-                const params = new URLSearchParams(window.location.search);
+                const url =
+                    window.location.origin +
+                    window.location.pathname;
+                const params = new URLSearchParams(
+                    window.location.search
+                );
 
                 value === null
                     ? params.delete(key)
@@ -53,7 +61,9 @@ export class UrlState<T extends ToString> extends AsyncState<T | null> {
         });
 
         window.addEventListener("popstate", () => {
-            const query = new URLSearchParams(window.location.search).get(key);
+            const query = new URLSearchParams(
+                window.location.search
+            ).get(key);
             this.value = query !== null ? as(query) : null;
         });
     }
@@ -61,9 +71,7 @@ export class UrlState<T extends ToString> extends AsyncState<T | null> {
 
 export class StateRef<T> {
     refs: Sub<T>[];
-    constructor(
-        public ref: State<T>,
-    ) {
+    constructor(public ref: State<T>) {
         this.refs = [];
     }
     clear() {

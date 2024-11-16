@@ -30,8 +30,7 @@ function loadEpCache() {
     try {
         const raw = localStorage.getItem(LSK_EP_CACHE);
         return raw ? deserialize(raw) : [];
-    }
-    catch {
+    } catch {
         return [];
     }
 }
