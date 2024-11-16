@@ -351,7 +351,7 @@ async function getSearch(search) {
   for (let i = 0;i < _divs.length; i++) {
     const _div = _divs[i];
     const title = _div?.textContent;
-    const urlTitle = _div.querySelector("a")?.href.replace(window.location.origin + window.location.pathname, "").replace("/category/", "");
+    const urlTitle = _div.querySelector("a")?.href.replace(window.location.origin + window.location.pathname, "").replace("/category", "");
     const image = _div.querySelector(".thumbnail-recent_search")?.style.background.replace('url("', "").replace('")', "");
     if (!title || !urlTitle || !image) {
       console.warn("failed to parse item", _div);
