@@ -368,6 +368,13 @@ header .logo:focus svg {
     width: 84px;
     flex-shrink: 0;
     border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.episode-controls > button > svg {
+    fill: currentColor;
 }
 
 .episode-controls > button.disabled {

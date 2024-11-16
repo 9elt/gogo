@@ -594,6 +594,7 @@ var isMobile = matchMedia("(max-width: 768px)").matches;
 // src/components/arrow.left.ts
 var ArrowLeft = {
   tagName: "svg",
+  namespaceURI: "http://www.w3.org/2000/svg",
   viewBox: "0 0 24 24",
   style: {
     width: "24px",
@@ -611,6 +612,7 @@ var ArrowLeft = {
 // src/components/arrow.right.ts
 var ArrowRight = {
   tagName: "svg",
+  namespaceURI: "http://www.w3.org/2000/svg",
   viewBox: "0 0 24 24",
   style: {
     width: "24px",
@@ -761,7 +763,7 @@ function EpisodeDetails(_details, _statusful, episodeNumber2) {
           {
             tagName: "button",
             className: previous.as((previous2) => previous2 === null && "disabled" || null),
-            children: [ArrowLeft, " previous"],
+            children: [ArrowLeft, " prev"],
             onclick: previous.as((previous2) => previous2 !== null && (() => {
               episodeNumber2.ref.value = previous2;
             }))
@@ -830,7 +832,7 @@ var EpisodeDetailsLoading = {
           style: {
             animationDelay: randomDelay()
           },
-          children: [ArrowLeft, " previous"]
+          children: [ArrowLeft, " prev"]
         },
         {
           tagName: "div",

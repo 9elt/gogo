@@ -167,7 +167,7 @@ export function EpisodeDetails(
                             (previous) =>
                                 (previous === null && "disabled") || null
                         ),
-                        children: [ArrowLeft, " previous"],
+                        children: [ArrowLeft, " prev"],
                         onclick: previous.as(
                             (previous) =>
                                 previous !== null &&
@@ -261,7 +261,7 @@ export const EpisodeDetailsLoading = {
                     style: {
                         animationDelay: randomDelay(),
                     },
-                    children: [ArrowLeft, " previous"],
+                    children: [ArrowLeft, " prev"],
                 },
                 {
                     tagName: "div",
