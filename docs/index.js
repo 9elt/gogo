@@ -1105,7 +1105,7 @@ function Watching(_watching) {
         className: "section-header",
         children: [
           {
-            tagName: "h2",
+            tagName: "h3",
             children: ["Watchlist"]
           },
           WatchingPagination

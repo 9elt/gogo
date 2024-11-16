@@ -26,7 +26,7 @@ export function Watching(_watching: Watching): MiniElement {
                 className: "section-header",
                 children: [
                     {
-                        tagName: "h2",
+                        tagName: "h3",
                         children: ["Watchlist"],
                     },
                     WatchingPagination,
