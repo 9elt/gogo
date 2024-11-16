@@ -59,7 +59,7 @@ export function Details(
                         tagName: "div",
                         className: "image",
                         style: {
-                            backgroundImage: "url(" + _details.image + ")",
+                            backgroundImage: "url(" + encodeURI(_details.image) + ")",
                         },
                         children: [
                             {
