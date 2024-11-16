@@ -1,11 +1,11 @@
 import type { MiniElement } from "@9elt/miniframe";
-import { Details, EpisodePlayer } from "../components/details";
-import { Loading } from "../components/loading";
+import { Details, DetailsLoading, EpisodePlayer, PlayerLoading } from "../components/details";
 import { Releases, ReleasesLoading } from "../components/releases";
 import { Search } from "../components/search";
 import { Route, details, episode, episodeNumber, releases, route, statusful, urlTitle, watching } from "../global";
 import { StateRef } from "../lib/states";
 import { Watching } from "./watching";
+import { GOGO_URL } from "../lib/gogo";
 
 const Home = [
     watching.as((watching) =>
@@ -28,11 +28,12 @@ const Player = [
 
         return _details
             ? Details(_details, statusfulRef, episodeNumberRef)
-            : Loading;
+            : DetailsLoading;
     }),
-    episode.as((_episode) => _episode
-        ? EpisodePlayer(_episode)
-        : Loading
+    episode.as((_episode) =>
+        _episode === -1 ? null : _episode
+            ? EpisodePlayer(_episode)
+            : PlayerLoading
     ),
 ];
 
@@ -69,6 +70,24 @@ const Header = {
     ],
 }
 
+const Footer: MiniElement = {
+    tagName: "footer",
+    children: [
+        // @ts-ignore
+        {
+            tagName: "small",
+            children: [
+                "This is an alternative client for ",
+                {
+                    tagName: "a",
+                    href: GOGO_URL,
+                    children: ["gogoanime"]
+                },
+            ],
+        }
+    ],
+};
+
 export const Root: MiniElement = {
     tagName: "div",
     id: "root",
@@ -78,9 +97,16 @@ export const Root: MiniElement = {
         // @ts-ignore
         {
             tagName: "main",
-            children: route.as((route) =>
-                route === Route.Home ? Home : Player
-            )
-        }
+            children: route.as((route) => {
+                route === Route.Player && setTimeout(() => scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                }), 50);
+
+                return route === Route.Home ? Home : Player;
+            })
+        },
+        // @ts-ignore
+        Footer,
     ],
 };

@@ -10,20 +10,25 @@ import {
 import { AsyncState, UrlState } from "./lib/states";
 import { STATUSFUL_MAX_SIZE, Status, Statusful, dumpStatusful, loadStatusful } from "./lib/statusful";
 
-export const releasesPage = new UrlState("releases", Number);
+const QK_RELEASES_PAGE = "releases";
+const QK_WATCHING_PAGE = "watching";
+const QK_SEARCH = "search";
+const QK_TITLE = "title";
+
+export const releasesPage = new UrlState(QK_RELEASES_PAGE, Number);
 releasesPage.value ||= 1;
 
 export const releases = releasesPage.asyncAs(async (page) =>
     page === null ? [] : await getReleases(page)
 );
 
-export const search = new UrlState<string>("search", String);
+export const search = new UrlState<string>(QK_SEARCH, String);
 
 export const results = search.asyncAs(async (search) =>
     search?.trim() ? await getSearch(search) : null
 );
 
-export const urlTitle = new UrlState<string>("title", String);
+export const urlTitle = new UrlState<string>(QK_TITLE, String);
 
 export enum Route {
     Home,
@@ -44,28 +49,46 @@ export const details = urlTitle.asyncAs(async (urlTitle) => {
 
     headTitle.textContent = details?.title || originalTitle;
 
-    if (details && episodeNumber.value === null) {
+    if (details && details.episodes.length === 0) {
+        episodeNumber.value = -1;
+    }
+
+    if (
+        details
+        && details.episodes.length > 0
+        && episodeNumber.value === null
+    ) {
         episodeNumber.value =
             epCache.get(urlTitle!) ||
             details.episodes[details.episodes.length - 1]
-            || null;
+            || -1;
     }
 
     return details;
-});
+}, null);
 
 export const episodeNumber = new AsyncState<number | null>(null);
 
 episodeNumber.sub((value) => {
-    if (value !== null && urlTitle.value !== null) {
+    if (
+        value !== null
+        && value !== -1
+        && urlTitle.value !== null
+        // NOTE: Avoid storing the default value
+        && (epCache.get(urlTitle.value) !== null || value !== 1)
+    ) {
         epCache.add(urlTitle.value, value);
     }
 });
 
 export const episode = episodeNumber.asyncAs(async (episodeNumber) =>
-    urlTitle.value && episodeNumber !== null
+    urlTitle.value && episodeNumber !== null && episodeNumber !== -1
         ? await getEpisode(urlTitle.value, episodeNumber)
-        : null
+        : episodeNumber === -1
+            // NOTE: No episode available
+            ? -1
+            // NOTE: Loading
+            : null
 );
 
 export const statusful = new State(loadStatusful()) as State<Statusful[]> & {
@@ -98,7 +121,7 @@ statusful.remove = (value) => {
 
 export const WATCHING_PAGE_SIZE = 8;
 
-export const watchingPage = new UrlState("watching", Number);
+export const watchingPage = new UrlState(QK_WATCHING_PAGE, Number);
 watchingPage.value ||= 1;
 
 export type Watching = {
@@ -120,6 +143,7 @@ export const watching = State.use({ watchingPage, statusful }).as((g) => {
         g.watchingPage = maxPage;
     }
 
+    // @ts-ignore
     const data = g.statusful.slice().reverse().slice(
         (g.watchingPage - 1) * WATCHING_PAGE_SIZE,
         g.watchingPage * WATCHING_PAGE_SIZE

@@ -4,13 +4,14 @@ import { prefetcher } from "../lib/cache";
 import { getDetails, getDetailsCacheId, type SearchResult } from "../lib/gogo";
 import { StateRef } from "../lib/states";
 import type { Statusful } from "../lib/statusful";
+import { isMobile } from "../util";
 
 const statusfulRef = new StateRef(statusful);
 
 const SearchInput = createNode({
     tagName: "input",
     type: "search",
-    placeholder: "Type '/' to search",
+    placeholder: isMobile ? "Search" : "Type '/' to search",
     value: search.as((search) => search || ""),
     oninput: debounce((e: any) => {
         search.value = e.target.value.trim() || null;
@@ -33,8 +34,23 @@ export const Search = createNode({
     tagName: "div",
     className: "search-container",
     children: [
-        // @ts-ignore
-        SearchInput,
+        {
+            tagName: "div",
+            className: "input-container",
+            children: [
+                SearchInput,
+                search.as((_search) => _search !== null && {
+                    tagName: "span",
+                    className: "input-adornment",
+                    children: ["✕"],
+                    onclick: () => {
+                        if (search.value !== null) {
+                            search.value = null;
+                        }
+                    },
+                }),
+            ],
+        },
         // @ts-ignore
         results.as((results) => {
             statusfulRef.clear();

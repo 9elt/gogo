@@ -6,7 +6,7 @@
         "http-server": "^14.1.1"
     },
     "scripts": {
-        "build": "bun build.js && cp src/index.html docs/index.html && cp src/index.css docs/index.css",
+        "build": "bun build.js && cp src/index.html docs/index.html && cp src/index.css docs/index.css && cp -r media/* docs",
         "dev": "http-server"
     }
 }

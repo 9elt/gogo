@@ -3,6 +3,7 @@ import { Status, statusful } from "../global";
 import type { Episode, EpisodeDetails } from "../lib/gogo";
 import { StateRef } from "../lib/states";
 import { Statusful } from "../lib/statusful";
+import { isMobile, randomDelay } from "../util";
 import { ExpandableText } from "./expandable.text";
 
 export function Details(
@@ -141,7 +142,7 @@ export function Details(
                 ],
             },
             // @ts-ignore
-            {
+            _details.episodes.length > 0 && {
                 tagName: "div",
                 className: "episode-buttons",
                 children: [
@@ -156,7 +157,7 @@ export function Details(
                     // @ts-ignore
                     {
                         tagName: "div",
-                        className: _details.episodes.length < 19
+                        className: _details.episodes.length < (isMobile ? 10 : 19)
                             ? "episode-list center"
                             : _details.episodes.length < 100
                                 ? "episode-list"
@@ -197,6 +198,61 @@ export function Details(
     };
 }
 
+export const DetailsLoading = {
+    tagName: "div",
+    className: "details-container loading",
+    children: [
+        {
+            tagName: "div",
+            className: "details",
+            children: [
+                {
+                    tagName: "div",
+                    style: {
+                        animationDelay: randomDelay(),
+                    },
+                    className: "image",
+                },
+                {
+                    tagName: "div",
+                    style: {
+                        animationDelay: randomDelay(),
+                    },
+                    className: "data",
+                },
+            ],
+        },
+        {
+            tagName: "div",
+            className: "episode-buttons",
+            children: [
+                {
+                    tagName: "button",
+                    style: {
+                        animationDelay: randomDelay(),
+                    },
+                    children: ["🢐 previous"],
+                },
+                {
+                    tagName: "div",
+                    className: "episode-list center",
+                    children: new Array(7).fill(null).map((_, i) => ({
+                        tagName: "button",
+                        children: [i]
+                    })),
+                },
+                {
+                    tagName: "button",
+                    style: {
+                        animationDelay: randomDelay(),
+                    },
+                    children: ["next 🢒"],
+                },
+            ]
+        }
+    ],
+};
+
 const LSK_SERVER = "server";
 
 export function EpisodePlayer(_episode: Episode): MiniElement {
@@ -210,6 +266,7 @@ export function EpisodePlayer(_episode: Episode): MiniElement {
     const iframe = createNode({
         // @ts-ignore
         tagName: "iframe",
+        className: "player-iframe",
         src,
     });
 
@@ -251,3 +308,40 @@ export function EpisodePlayer(_episode: Episode): MiniElement {
         ],
     };
 }
+
+export const PlayerLoading = {
+    tagName: "div",
+    className: "player loading",
+    children: [
+        {
+            tagName: "div",
+            className: "player-iframe",
+        },
+        {
+            tagName: "div",
+            className: "server-list",
+            children: [
+                {
+                    tagName: "small",
+                    children: ["servers"],
+                },
+                {
+                    tagName: "button",
+                    children: ["vidcdn"],
+                },
+                {
+                    tagName: "button",
+                    children: ["streamwish"],
+                },
+                {
+                    tagName: "button",
+                    children: ["hydrax"],
+                },
+                {
+                    tagName: "button",
+                    children: ["mp4upload"],
+                },
+            ],
+        },
+    ],
+};

@@ -226,7 +226,7 @@ async function getEpisode(name, episode) {
   for (let i = 0;i < _links.length; i++) {
     const _li = _links[i];
     const _a = _li.querySelector("a[data-video]");
-    const server = _li.className;
+    const server = _li.className.replace("server", "").trim();
     const href = _a?.dataset.video;
     if (!href || !server) {
       console.warn("failed to parse link", _li);
@@ -352,7 +352,6 @@ async function getSearch(search) {
     const _div = _divs[i];
     const title = _div?.textContent;
     const urlTitle = _div.querySelector("a")?.href.replace(window.location.origin + window.location.pathname, "").replace("category/", "");
-    console.log(urlTitle);
     const image = _div.querySelector(".thumbnail-recent_search")?.style.background.replace('url("', "").replace('")', "");
     if (!title || !urlTitle || !image) {
       console.warn("failed to parse item", _div);
@@ -414,10 +413,13 @@ class AsyncState extends State {
   constructor(value) {
     super(value);
   }
-  asyncAs(fn) {
+  asyncAs(fn, loadingStatus) {
     const child = new State(undefined);
-    this.sub(async (value) => {
-      child.value = await fn(value);
+    this.sub((value) => {
+      if (loadingStatus !== undefined) {
+        child.value = loadingStatus;
+      }
+      fn(value).then((value2) => child.value = value2);
     })(this.value, this.value);
     return child;
   }
@@ -515,12 +517,16 @@ var Status;
 })(Status || (Status = {}));
 
 // src/global.ts
-var releasesPage = new UrlState("releases", Number);
+var QK_RELEASES_PAGE = "releases";
+var QK_WATCHING_PAGE = "watching";
+var QK_SEARCH = "search";
+var QK_TITLE = "title";
+var releasesPage = new UrlState(QK_RELEASES_PAGE, Number);
 releasesPage.value ||= 1;
 var releases = releasesPage.asyncAs(async (page) => page === null ? [] : await getReleases(page));
-var search = new UrlState("search", String);
+var search = new UrlState(QK_SEARCH, String);
 var results = search.asyncAs(async (search2) => search2?.trim() ? await getSearch(search2) : null);
-var urlTitle = new UrlState("title", String);
+var urlTitle = new UrlState(QK_TITLE, String);
 var Route;
 (function(Route2) {
   Route2[Route2["Home"] = 0] = "Home";
@@ -532,18 +538,21 @@ var originalTitle = headTitle.textContent;
 var details = urlTitle.asyncAs(async (urlTitle2) => {
   const details2 = urlTitle2 === null ? null : await getDetails(urlTitle2);
   headTitle.textContent = details2?.title || originalTitle;
-  if (details2 && episodeNumber.value === null) {
-    episodeNumber.value = epCache.get(urlTitle2) || details2.episodes[details2.episodes.length - 1] || null;
+  if (details2 && details2.episodes.length === 0) {
+    episodeNumber.value = -1;
+  }
+  if (details2 && details2.episodes.length > 0 && episodeNumber.value === null) {
+    episodeNumber.value = epCache.get(urlTitle2) || details2.episodes[details2.episodes.length - 1] || -1;
   }
   return details2;
-});
+}, null);
 var episodeNumber = new AsyncState(null);
 episodeNumber.sub((value) => {
-  if (value !== null && urlTitle.value !== null) {
+  if (value !== null && value !== -1 && urlTitle.value !== null && (epCache.get(urlTitle.value) !== null || value !== 1)) {
     epCache.add(urlTitle.value, value);
   }
 });
-var episode = episodeNumber.asyncAs(async (episodeNumber2) => urlTitle.value && episodeNumber2 !== null ? await getEpisode(urlTitle.value, episodeNumber2) : null);
+var episode = episodeNumber.asyncAs(async (episodeNumber2) => urlTitle.value && episodeNumber2 !== null && episodeNumber2 !== -1 ? await getEpisode(urlTitle.value, episodeNumber2) : episodeNumber2 === -1 ? -1 : null);
 var statusful2 = new State(loadStatusful());
 statusful2.sub(dumpStatusful);
 statusful2.add = (value, status) => {
@@ -564,7 +573,7 @@ statusful2.remove = (value) => {
   statusful2.value = statusful2.value.filter((v) => v.urlTitle !== value.urlTitle);
 };
 var WATCHING_PAGE_SIZE = 8;
-var watchingPage = new UrlState("watching", Number);
+var watchingPage = new UrlState(QK_WATCHING_PAGE, Number);
 watchingPage.value ||= 1;
 statusful2.sub((_statusful) => {
   const maxPage = Math.ceil(_statusful.length / WATCHING_PAGE_SIZE);
@@ -582,6 +591,12 @@ var watching = State.use({ watchingPage, statusful: statusful2 }).as((g) => {
     data
   };
 });
+
+// src/util.ts
+function randomDelay() {
+  return (Math.random() * 300).toFixed(0) + "ms";
+}
+var isMobile = matchMedia("(max-width: 768px)").matches;
 
 // src/components/expandable.text.ts
 function ExpandableText(text, limit) {
@@ -716,7 +731,7 @@ function Details(_details, _statusful, episodeNumber2) {
           }
         ]
       },
-      {
+      _details.episodes.length > 0 && {
         tagName: "div",
         className: "episode-buttons",
         children: [
@@ -730,7 +745,7 @@ function Details(_details, _statusful, episodeNumber2) {
           },
           {
             tagName: "div",
-            className: _details.episodes.length < 19 ? "episode-list center" : _details.episodes.length < 100 ? "episode-list" : _details.episodes.length < 200 ? "episode-list s" : "episode-list xs",
+            className: _details.episodes.length < (isMobile ? 10 : 19) ? "episode-list center" : _details.episodes.length < 100 ? "episode-list" : _details.episodes.length < 200 ? "episode-list s" : "episode-list xs",
             children: _details.episodes.map((number) => {
               const button = createNode({
                 tagName: "button",
@@ -764,6 +779,7 @@ function EpisodePlayer(_episode) {
   const src = new State(_episode.links.find((item) => item.server === lastServer)?.href || _episode.links[0].href);
   const iframe = createNode({
     tagName: "iframe",
+    className: "player-iframe",
     src
   });
   iframe.setAttribute("allowfullscreen", "true");
@@ -800,12 +816,96 @@ function EpisodePlayer(_episode) {
     ]
   };
 }
+var DetailsLoading = {
+  tagName: "div",
+  className: "details-container loading",
+  children: [
+    {
+      tagName: "div",
+      className: "details",
+      children: [
+        {
+          tagName: "div",
+          style: {
+            animationDelay: randomDelay()
+          },
+          className: "image"
+        },
+        {
+          tagName: "div",
+          style: {
+            animationDelay: randomDelay()
+          },
+          className: "data"
+        }
+      ]
+    },
+    {
+      tagName: "div",
+      className: "episode-buttons",
+      children: [
+        {
+          tagName: "button",
+          style: {
+            animationDelay: randomDelay()
+          },
+          children: ["\uD83E\uDC90 previous"]
+        },
+        {
+          tagName: "div",
+          className: "episode-list center",
+          children: new Array(7).fill(null).map((_, i) => ({
+            tagName: "button",
+            children: [i]
+          }))
+        },
+        {
+          tagName: "button",
+          style: {
+            animationDelay: randomDelay()
+          },
+          children: ["next \uD83E\uDC92"]
+        }
+      ]
+    }
+  ]
+};
 var LSK_SERVER = "server";
-
-// src/components/loading.ts
-var Loading = {
-  tagName: "p",
-  children: ["loading"]
+var PlayerLoading = {
+  tagName: "div",
+  className: "player loading",
+  children: [
+    {
+      tagName: "div",
+      className: "player-iframe"
+    },
+    {
+      tagName: "div",
+      className: "server-list",
+      children: [
+        {
+          tagName: "small",
+          children: ["servers"]
+        },
+        {
+          tagName: "button",
+          children: ["vidcdn"]
+        },
+        {
+          tagName: "button",
+          children: ["streamwish"]
+        },
+        {
+          tagName: "button",
+          children: ["hydrax"]
+        },
+        {
+          tagName: "button",
+          children: ["mp4upload"]
+        }
+      ]
+    }
+  ]
 };
 
 // src/components/card.ts
@@ -928,7 +1028,7 @@ function Releases(_releases) {
         children: [
           {
             tagName: "h3",
-            children: ["Recent releases"]
+            children: ["Recent Releases"]
           },
           ReleasesPagination
         ]
@@ -958,7 +1058,18 @@ var ReleasesLoading = {
   tagName: "div",
   className: "loading",
   children: [
-    LoadingPagination,
+    {
+      tagName: "div",
+      className: "section-header",
+      children: [
+        {
+          tagName: "h3",
+          children: ["Recent Releases"]
+        },
+        LoadingPagination
+      ]
+    },
+    ,
     {
       tagName: "div",
       className: "releases-list",
@@ -966,11 +1077,17 @@ var ReleasesLoading = {
         tagName: "div",
         className: "card loading",
         style: {
-          animationDelay: (Math.random() * 300).toFixed(0) + "ms"
+          animationDelay: randomDelay()
         }
       }))
     },
-    LoadingPagination
+    {
+      tagName: "div",
+      className: "section-footer",
+      children: [
+        LoadingPagination
+      ]
+    }
   ]
 };
 
@@ -1050,7 +1167,7 @@ var statusfulRef2 = new StateRef(statusful2);
 var SearchInput = createNode({
   tagName: "input",
   type: "search",
-  placeholder: "Type '/' to search",
+  placeholder: isMobile ? "Search" : "Type '/' to search",
   value: search.as((search2) => search2 || ""),
   oninput: debounce((e) => {
     search.value = e.target.value.trim() || null;
@@ -1066,7 +1183,23 @@ var Search = createNode({
   tagName: "div",
   className: "search-container",
   children: [
-    SearchInput,
+    {
+      tagName: "div",
+      className: "input-container",
+      children: [
+        SearchInput,
+        search.as((_search) => _search !== null && {
+          tagName: "span",
+          className: "input-adornment",
+          children: ["\u2715"],
+          onclick: () => {
+            if (search.value !== null) {
+              search.value = null;
+            }
+          }
+        })
+      ]
+    },
     results.as((results2) => {
       statusfulRef2.clear();
       return results2 && {
@@ -1107,7 +1240,7 @@ function Watching(_watching) {
         children: [
           {
             tagName: "h3",
-            children: ["Watchlist"]
+            children: ["Your Watchlist"]
           },
           WatchingPagination
         ]
@@ -1143,9 +1276,9 @@ var Player = [
   details.as((_details) => {
     statusfulRef4.clear();
     episodeNumberRef.clear();
-    return _details ? Details(_details, statusfulRef4, episodeNumberRef) : Loading;
+    return _details ? Details(_details, statusfulRef4, episodeNumberRef) : DetailsLoading;
   }),
-  episode.as((_episode) => _episode ? EpisodePlayer(_episode) : Loading)
+  episode.as((_episode) => _episode === -1 ? null : _episode ? EpisodePlayer(_episode) : PlayerLoading)
 ];
 var Logo = `<svg viewBox="0 0 305 91" xmlns="http://www.w3.org/2000/svg">
 <path fill-rule="evenodd" clip-rule="evenodd" d="M110.458 4C100.458 4 91.1704 13.213 79.9578 33C71.4578 48 68.9578 74.5 76.4578 82C83.9578 89.5 99.9578 90.5 111.958 90.5C123.958 90.5 135.458 90.5 143.958 83C152.458 75.5 148.958 45.5 137.958 27.5C126.958 9.5 118.958 4 110.458 4ZM110.458 15.5C103.958 15.5 92.9051 31 88.9578 41C80.4709 62.5 81.9578 71 85.4578 75C88.9578 79 107.958 79.5 111.958 79.5C115.958 79.5 133.958 78 135.958 75C137.958 72 140.208 59.5 130.958 41C127.458 34 117.958 15.5 110.458 15.5Z"/>
@@ -1175,6 +1308,22 @@ var Header = {
     }
   ]
 };
+var Footer = {
+  tagName: "footer",
+  children: [
+    {
+      tagName: "small",
+      children: [
+        "This is an alternative client for ",
+        {
+          tagName: "a",
+          href: GOGO_URL,
+          children: ["gogoanime"]
+        }
+      ]
+    }
+  ]
+};
 var Root = {
   tagName: "div",
   id: "root",
@@ -1182,8 +1331,15 @@ var Root = {
     Header,
     {
       tagName: "main",
-      children: route.as((route2) => route2 === Route.Home ? Home : Player)
-    }
+      children: route.as((route2) => {
+        route2 === Route.Player && setTimeout(() => scrollTo({
+          top: 0,
+          behavior: "smooth"
+        }), 50);
+        return route2 === Route.Home ? Home : Player;
+      })
+    },
+    Footer
   ]
 };
 

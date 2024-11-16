@@ -2,7 +2,7 @@ import { cache, prefetcher } from "./cache";
 
 const _TMP = document.createElement("div");
 
-const GOGO_URL = "https://anitaku.bz";
+export const GOGO_URL = "https://anitaku.bz";
 const GOGO_CDN_URL = "https://ajax.gogocdn.net";
 
 export type Episode = {
@@ -40,7 +40,9 @@ export async function getEpisode(name: string, episode: number): Promise<Episode
         const _li = _links[i];
         const _a = _li.querySelector("a[data-video]") as HTMLAnchorElement | null;
 
-        const server = _li.className;
+        const server = _li.className
+            .replace("server", "")
+            .trim();
         const href = _a?.dataset.video;
 
         if (!href || !server) {

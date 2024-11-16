@@ -7,15 +7,18 @@ export class AsyncState<T> extends State<T> {
         super(value);
     }
 
-    asyncAs<C>(fn: (value: T) => Promise<C>) {
+    asyncAs<C>(fn: (value: T) => Promise<C>, loadingStatus?: C) {
         const child = new State<
             | C
-            // NOTE: first load
+            // NOTE: First load
             | undefined
         >(undefined);
 
-        this.sub(async (value) => {
-            child.value = await fn(value);
+        this.sub((value) => {
+            if (loadingStatus !== undefined) {
+                child.value = loadingStatus;
+            }
+            fn(value).then((value) => child.value = value);
         })(this.value, this.value);
 
         return child;
@@ -25,7 +28,7 @@ export class AsyncState<T> extends State<T> {
 export class UrlState<T extends ToString> extends AsyncState<T | null> {
     constructor(
         key: string,
-        as: ((value: string) => T | null)
+        as: ((value: string) => T | null),
     ) {
         const query = new URLSearchParams(window.location.search).get(key);
         super(query !== null ? as(query) : null);

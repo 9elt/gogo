@@ -66,13 +66,6 @@ button.active {
     border-radius: 4px;
 }
 
-.loading .pagination button {
-    pointer-events: none;
-    color: transparent;
-    background-color: #333;
-    animation: loading 1s infinite ease-in-out;
-}
-
 #root {
     position: relative;
     --max-width: 976px;
@@ -90,6 +83,13 @@ button.active {
     flex-wrap: wrap;
     margin: 0 auto;
     gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .watching-list,
+    .releases-list {
+        justify-content: center;
+    }
 }
 
 header {
@@ -112,7 +112,6 @@ header>div {
 
 header .logo svg {
     width: 75px;
-    height: 25px;
     fill: var(--accent);
 }
 
@@ -127,9 +126,29 @@ header .logo:focus svg {
     filter: drop-shadow(0 0 4px var(--accent));
 }
 
+a {
+    color: var(--accent);
+}
+
+footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 80px;
+    margin-bottom: 16px;
+}
+
+footer>* {
+    margin: 0 8px;
+}
+
 .search-container {
     position: relative;
     width: 384px;
+}
+
+.input-container {
+    position: relative;
+    width: 100%;
 }
 
 input[type="search"] {
@@ -146,6 +165,24 @@ input[type="search"]:focus::placeholder {
   color: transparent;
 }
 
+.input-adornment {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    header .logo {
+        margin-left: 5%;
+    }
+    .input-container {
+        width: 90%;
+        margin-left: 5%;
+    }
+}
+
 .search-results {
     position: absolute;
     top: calc(100% + 8px);
@@ -157,6 +194,14 @@ input[type="search"]:focus::placeholder {
     border-radius: 4px;
     z-index: 1;
     padding: 8px;
+}
+
+@media (max-width: 768px) {
+    .search-results {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+    }
 }
 
 .no-results {
@@ -198,12 +243,18 @@ input[type="search"]:focus::placeholder {
 
 main {
     margin-top: calc(var(--header-height) + 12px);
+    margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+    main {
+        margin-top: calc(var(--header-height) + 4px);
+    }
 }
 
 .section-header {
     margin-bottom: 16px;
     font-size: 1rem;
-    font-weight: bold;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -212,9 +263,30 @@ main {
     padding: 4px 18px;
 }
 
+.section-header h3 {
+    font-weight: 300;
+}
+
+.loading .section-header,
+.loading .section-footer {
+    background-color: var(--header-background);
+    animation: loading 1s infinite ease-in-out;
+}
+
+.loading .section-header *,
+.loading .section-footer * {
+    opacity: 0;
+}
+
 .section-footer {
-    margin-top: 8px;
+    margin-top: 16px;
     margin-bottom: 16px;
+    border-radius: 4px;
+    padding: 0 18px;
+}
+
+.section-footer .pagination {
+    padding: 8px 0;
 }
 
 .card {
@@ -232,7 +304,6 @@ main {
 }
 
 .card.loading {
-    filter: saturate(0.2);
     height: 371px;
     animation: loading 1s infinite ease-in-out;
 }
@@ -321,7 +392,26 @@ main {
     background-position: center;
     margin-right: 8px;
     flex-shrink: 0;
-    margin-bottom: 8px;
+}
+
+.loading.details-container {
+    pointer-events: none;
+}
+
+.loading .details .image {
+    background-color: #171717;
+    animation: loading 1s infinite ease-in-out;
+}
+
+.loading .details .data {
+    background-color: #212121;
+    animation: loading 1s infinite ease-in-out;
+}
+
+.loading .episode-buttons button {
+    background-color: #212121;
+    color: transparent;
+    animation: loading 1s infinite ease-in-out;
 }
 
 .details-container.watching .status-bar {
@@ -345,6 +435,14 @@ main {
     margin-left: auto;
 }
 
+@media (max-width: 768px) {
+    .details .data button {
+        margin-bottom: 8px;
+        margin-right: 0;
+        margin-left: 0;
+    }
+}
+
 .details-container.watching .details .data h2 {
     color: var(--accent-bright);
     text-shadow: 0 0 4px var(--accent);
@@ -353,10 +451,12 @@ main {
 .details .data .genres {
     margin-top: 16px;
     margin-bottom: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .details .data .genres>* {
-    margin-right: 8px;
     background-color: #181818;
     padding: 4px 8px;
     border-radius: 4px;
@@ -371,6 +471,17 @@ main {
     margin-top: 32px;
 }
 
+@media (max-width: 768px) {
+    .details {
+        flex-direction: column;
+        align-items: center;
+    }
+    .details .data {
+        margin-top: 16px;
+        width: 95%;
+    }
+}
+
 .episode-buttons {
     display: flex;
     margin-top: 32px;
@@ -383,6 +494,7 @@ main {
 .episode-buttons>button {
     width: 84px;
     flex-shrink: 0;
+    border-radius: 4px;
 }
 
 .episode-buttons>button.disabled {
@@ -422,16 +534,54 @@ main {
     font-size: 0.65rem;
 }
 
+@media (max-width: 768px) {
+    .episode-buttons {
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+    .episode-buttons>button:first-child {
+        margin-top: 8px;
+        width: 84px;
+        text-align: left;
+        margin-left: 5%;
+        margin-right: calc(45% - 84px);
+    }
+    .episode-buttons>button:last-child {
+        margin-top: 8px;
+        width: 84px;
+        text-align: right;
+        margin-right: 5%;
+        margin-left: calc(45% - 84px);
+    }
+    .episode-list {
+        order: -2;
+    }
+}
+
 .player {
     margin-top: 8px;
 }
 
-.player iframe {
+.player.loading {
+    pointer-events: none;
+}
+
+.player .player-iframe {
     background-color: #111;
     background-color: #000;
     width: 100%;
     border: none;
     height: 549px;
+}
+
+.loading .player-iframe {
+    animation: loading 1s infinite ease-in-out;
+}
+
+@media (max-width: 768px) {
+    .player .player-iframe {
+        height: calc(100vw * 9 / 16);
+    }
 }
 
 .server-list {
@@ -442,12 +592,27 @@ main {
     margin-top: 8px;
 }
 
-.server-list small {
+@media (max-width: 768px) {
+    .server-list {
+        justify-content: center;
+    }
+}
+
+.server-list>* {
+    border-radius: 4px;
+}
+
+.server-list>small {
     margin-right: 16px;
     opacity: 0.8;
 }
 
-.server-list button {
+.server-list>button {
     padding: 4px 8px;
-    border-radius: 4px;
+}
+
+.loading .server-list>* {
+    background-color: #212121;
+    color: transparent;
+    animation: loading 1s infinite ease-in-out;
 }

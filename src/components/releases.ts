@@ -4,6 +4,7 @@ import type { Release } from "../lib/gogo";
 import { StateRef } from "../lib/states";
 import { Card } from "./card";
 import { Pagination } from "./pagination";
+import { randomDelay } from "../util";
 
 const ReleasesPagination = releasesPage.as((_page) =>
     Pagination(_page, 99, (page) => { releasesPage.value = page; })
@@ -24,7 +25,7 @@ export function Releases(_releases: Release[]): MiniElement {
                 children: [
                     {
                         tagName: "h3",
-                        children: ["Recent releases"],
+                        children: ["Recent Releases"],
                     },
                     ReleasesPagination,
                 ],
@@ -54,7 +55,18 @@ export const ReleasesLoading: MiniElement = {
     className: "loading",
     children: [
         // @ts-ignore
-        LoadingPagination,
+        {
+            tagName: "div",
+            className: "section-header",
+            children: [
+                {
+                    tagName: "h3",
+                    children: ["Recent Releases"],
+                },
+                LoadingPagination,
+            ],
+        },
+        ,
         // @ts-ignore
         {
             tagName: "div",
@@ -64,11 +76,17 @@ export const ReleasesLoading: MiniElement = {
                 tagName: "div",
                 className: "card loading",
                 style: {
-                    animationDelay: (Math.random() * 300).toFixed(0) + "ms",
+                    animationDelay: randomDelay(),
                 }
             })),
         },
         // @ts-ignore
-        LoadingPagination,
+        {
+            tagName: "div",
+            className: "section-footer",
+            children: [
+                LoadingPagination,
+            ],
+        },
     ],
 };

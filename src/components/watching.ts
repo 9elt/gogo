@@ -27,7 +27,7 @@ export function Watching(_watching: Watching): MiniElement {
                 children: [
                     {
                         tagName: "h3",
-                        children: ["Watchlist"],
+                        children: ["Your Watchlist"],
                     },
                     WatchingPagination,
                 ],
