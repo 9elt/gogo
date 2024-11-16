@@ -26,7 +26,7 @@ export function dumpStatusful(value: Statusful[]) {
     localStorage.setItem(LSK_STATUSFUL, serialize(value));
 }
 
-export function serialize(values: Statusful[]) {
+function serialize(values: Statusful[]) {
     let result = SER_VERSION;
 
     for (const value of values) {

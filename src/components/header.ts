@@ -13,7 +13,7 @@ export const Header: MiniElement = {
                 {
                     tagName: "button",
                     className: "logo",
-                    innerHTML: Logo,
+                    children: [Logo],
                     onclick: () => {
                         if (route.value !== Route.Home) {
                             urlTitle.value = null;

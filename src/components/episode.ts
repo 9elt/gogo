@@ -8,7 +8,7 @@ import {
     EpisodePlayerLoading,
 } from "../components/episode.player";
 import { details, episode, episodeNumber, statusful } from "../global";
-import { StateRef } from "../lib/states";
+import { StateRef } from "../lib/state.ref";
 
 const statusfulRef = new StateRef(statusful);
 const episodeNumberRef = new StateRef(episodeNumber);

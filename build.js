@@ -9,6 +9,7 @@ const build = await Bun.build({
 });
 
 if (!build.success) {
+    console.log(build);
     throw new Error("Build failed");
 }
 

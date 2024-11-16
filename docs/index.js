@@ -122,8 +122,25 @@ class State {
   }
 }
 
-// src/lib/ep.cache.ts
-var loadEpCache = function() {
+// src/lib/async.state.ts
+class AsyncState extends State {
+  constructor(value) {
+    super(value);
+  }
+  asyncAs(fn, loadingStatus) {
+    const child = new State(undefined);
+    this.sub((value) => {
+      if (loadingStatus !== undefined) {
+        child.value = loadingStatus;
+      }
+      fn(value).then((value2) => child.value = value2);
+    })(this.value, this.value);
+    return child;
+  }
+}
+
+// src/lib/episode.cache.ts
+var load = function() {
   try {
     const raw = localStorage.getItem(LSK_EP_CACHE);
     return raw ? deserialize(raw) : [];
@@ -131,8 +148,8 @@ var loadEpCache = function() {
     return [];
   }
 };
-var dumpEpCache = function() {
-  localStorage.setItem(LSK_EP_CACHE, serialize(epCache));
+var dump = function() {
+  localStorage.setItem(LSK_EP_CACHE, serialize(episodeCache));
 };
 var serialize = function(value) {
   let result = SER_VERSION;
@@ -155,32 +172,32 @@ var deserialize = function(value) {
 };
 var LSK_EP_CACHE = "epcache";
 var SER_VERSION = "v1.";
-var CACHE_MAX_SIZE = 256;
-var epCache = loadEpCache();
-epCache.get = (id) => {
-  return epCache.find((item) => item[0] === id)?.[1];
+var EPISODE_CACHE_MAX_SIZE = 256;
+var episodeCache = load();
+episodeCache.get = (id) => {
+  return episodeCache.find((item) => item[0] === id)?.[1];
 };
-epCache.add = (id, ep) => {
-  for (const item of epCache) {
+episodeCache.add = (id, ep) => {
+  for (const item of episodeCache) {
     if (item[0] === id) {
       item[1] = ep;
-      dumpEpCache();
+      dump();
       return;
     }
   }
-  if (epCache.length > CACHE_MAX_SIZE) {
-    epCache.shift();
+  if (episodeCache.length > EPISODE_CACHE_MAX_SIZE) {
+    episodeCache.shift();
   }
-  epCache.push([id, ep]);
-  dumpEpCache();
+  episodeCache.push([id, ep]);
+  dump();
 };
 
 // src/lib/cache.ts
-var CACHE_MAX_SIZE2 = 64;
+var CACHE_MAX_SIZE = 64;
 var cache = [];
 cache.add = (id, data) => {
   cache.push({ id, data });
-  if (cache.length > CACHE_MAX_SIZE2) {
+  if (cache.length > CACHE_MAX_SIZE) {
     cache.shift();
   }
 };
@@ -408,67 +425,6 @@ var _TMP = document.createElement("div");
 var GOGO_URL = "https://anitaku.bz";
 var GOGO_CDN_URL = "https://ajax.gogocdn.net";
 
-// src/lib/states.ts
-class AsyncState extends State {
-  constructor(value) {
-    super(value);
-  }
-  asyncAs(fn, loadingStatus) {
-    const child = new State(undefined);
-    this.sub((value) => {
-      if (loadingStatus !== undefined) {
-        child.value = loadingStatus;
-      }
-      fn(value).then((value2) => child.value = value2);
-    })(this.value, this.value);
-    return child;
-  }
-}
-
-class UrlState extends AsyncState {
-  constructor(key, as) {
-    const query = new URLSearchParams(window.location.search).get(key);
-    super(query !== null ? as(query) : null);
-    this.sub((value, prevValue) => {
-      if (value !== prevValue) {
-        const url = window.location.origin + window.location.pathname;
-        const params = new URLSearchParams(window.location.search);
-        value === null ? params.delete(key) : params.set(key, value.toString());
-        const search = params.toString();
-        window.history.pushState({}, "", search ? url + "?" + search : url);
-      }
-    });
-    window.addEventListener("popstate", () => {
-      const query2 = new URLSearchParams(window.location.search).get(key);
-      this.value = query2 !== null ? as(query2) : null;
-    });
-  }
-}
-
-class StateRef {
-  ref;
-  refs;
-  constructor(ref) {
-    this.ref = ref;
-    this.refs = [];
-  }
-  clear() {
-    this.refs.forEach((ref) => this.ref.unsub(ref));
-    this.refs = [];
-  }
-  sub(f) {
-    this.refs.push(this.ref.sub(f));
-    return f;
-  }
-  as(f) {
-    const child = new State(f(this.ref.value));
-    this.refs.push(this.ref.sub((value) => {
-      child.value = f(value);
-    }));
-    return child;
-  }
-}
-
 // src/lib/statusful.ts
 function loadStatusful() {
   try {
@@ -481,13 +437,13 @@ function loadStatusful() {
 function dumpStatusful(value) {
   localStorage.setItem(LSK_STATUSFUL, serialize2(value));
 }
-function serialize2(values) {
+var serialize2 = function(values) {
   let result = SER_VERSION2;
   for (const value of values) {
     result += value.title + "\n" + value.urlTitle + "\n" + value.image + "\n" + value.status + "\n\n";
   }
   return result.slice(0, -2);
-}
+};
 var deserialize2 = function(value) {
   if (!value.startsWith(SER_VERSION2)) {
     return [];
@@ -517,6 +473,27 @@ var Status;
   Status2[Status2["Watching"] = 0] = "Watching";
 })(Status || (Status = {}));
 
+// src/lib/url.state.ts
+class UrlState extends AsyncState {
+  constructor(key, as) {
+    const query = new URLSearchParams(window.location.search).get(key);
+    super(query !== null ? as(query) : null);
+    this.sub((value, prevValue) => {
+      if (value !== prevValue) {
+        const url = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams(window.location.search);
+        value === null ? params.delete(key) : params.set(key, value.toString());
+        const search = params.toString();
+        window.history.pushState({}, "", search ? url + "?" + search : url);
+      }
+    });
+    window.addEventListener("popstate", () => {
+      const query2 = new URLSearchParams(window.location.search).get(key);
+      this.value = query2 !== null ? as(query2) : null;
+    });
+  }
+}
+
 // src/global.ts
 var QK_RELEASES_PAGE = "releases";
 var QK_WATCHING_PAGE = "watching";
@@ -543,17 +520,17 @@ var details = urlTitle.asyncAs(async (urlTitle2) => {
     episodeNumber.value = -1;
   }
   if (details2 && details2.episodes.length > 0 && episodeNumber.value === null) {
-    episodeNumber.value = epCache.get(urlTitle2) || details2.episodes[details2.episodes.length - 1] || -1;
+    episodeNumber.value = episodeCache.get(urlTitle2) || details2.episodes[details2.episodes.length - 1] || -1;
   }
   return details2;
 }, null);
 var episodeNumber = new AsyncState(null);
 episodeNumber.sub((value) => {
-  if (value !== null && value !== -1 && urlTitle.value !== null && (epCache.get(urlTitle.value) !== null || value !== 1)) {
-    epCache.add(urlTitle.value, value);
+  if (value !== null && value !== -1 && urlTitle.value !== null && (episodeCache.get(urlTitle.value) !== null || value !== 1)) {
+    episodeCache.add(urlTitle.value, value);
   }
 });
-var episode = episodeNumber.asyncAs(async (episodeNumber2) => urlTitle.value && episodeNumber2 !== null && episodeNumber2 !== -1 ? await getEpisode(urlTitle.value, episodeNumber2) : episodeNumber2 === -1 ? -1 : null);
+var episode2 = episodeNumber.asyncAs(async (episodeNumber2) => urlTitle.value && episodeNumber2 !== null && episodeNumber2 !== -1 ? await getEpisode(urlTitle.value, episodeNumber2) : episodeNumber2 === -1 ? -1 : null);
 var statusful2 = new State(loadStatusful());
 statusful2.sub(dumpStatusful);
 statusful2.add = (value, status) => {
@@ -613,6 +590,40 @@ function debounce(f, ms) {
   };
 }
 var isMobile = matchMedia("(max-width: 768px)").matches;
+
+// src/components/arrow.left.ts
+var ArrowLeft = {
+  tagName: "svg",
+  viewBox: "0 0 24 24",
+  style: {
+    width: "24px",
+    height: "24px"
+  },
+  children: [
+    {
+      tagName: "path",
+      namespaceURI: "http://www.w3.org/2000/svg",
+      d: "M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"
+    }
+  ]
+};
+
+// src/components/arrow.right.ts
+var ArrowRight = {
+  tagName: "svg",
+  viewBox: "0 0 24 24",
+  style: {
+    width: "24px",
+    height: "24px"
+  },
+  children: [
+    {
+      tagName: "path",
+      namespaceURI: "http://www.w3.org/2000/svg",
+      d: "M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
+    }
+  ]
+};
 
 // src/components/expandable.text.ts
 function ExpandableText(text, limit) {
@@ -750,7 +761,7 @@ function EpisodeDetails(_details, _statusful, episodeNumber2) {
           {
             tagName: "button",
             className: previous.as((previous2) => previous2 === null && "disabled" || null),
-            children: ["\uD83E\uDC90 previous"],
+            children: [ArrowLeft, " previous"],
             onclick: previous.as((previous2) => previous2 !== null && (() => {
               episodeNumber2.ref.value = previous2;
             }))
@@ -776,7 +787,7 @@ function EpisodeDetails(_details, _statusful, episodeNumber2) {
           {
             tagName: "button",
             className: next.as((next2) => next2 === null && "disabled" || null),
-            children: ["next \uD83E\uDC92"],
+            children: ["next ", ArrowRight],
             onclick: next.as((next2) => next2 !== null && (() => {
               episodeNumber2.ref.value = next2;
             }))
@@ -819,7 +830,7 @@ var EpisodeDetailsLoading = {
           style: {
             animationDelay: randomDelay()
           },
-          children: ["\uD83E\uDC90 previous"]
+          children: [ArrowLeft, " previous"]
         },
         {
           tagName: "div",
@@ -834,7 +845,7 @@ var EpisodeDetailsLoading = {
           style: {
             animationDelay: randomDelay()
           },
-          children: ["next \uD83E\uDC92"]
+          children: ["next ", ArrowRight]
         }
       ]
     }
@@ -920,6 +931,31 @@ var EpisodePlayerLoading = {
   ]
 };
 
+// src/lib/state.ref.ts
+class StateRef {
+  ref;
+  refs;
+  constructor(ref) {
+    this.ref = ref;
+    this.refs = [];
+  }
+  clear() {
+    this.refs.forEach((ref) => this.ref.unsub(ref));
+    this.refs = [];
+  }
+  sub(f) {
+    this.refs.push(this.ref.sub(f));
+    return f;
+  }
+  as(f) {
+    const child = new State(f(this.ref.value));
+    this.refs.push(this.ref.sub((value) => {
+      child.value = f(value);
+    }));
+    return child;
+  }
+}
+
 // src/components/episode.ts
 var statusfulRef = new StateRef(statusful2);
 var episodeNumberRef = new StateRef(episodeNumber);
@@ -929,7 +965,7 @@ var Episode = [
     episodeNumberRef.clear();
     return _details ? EpisodeDetails(_details, statusfulRef, episodeNumberRef) : EpisodeDetailsLoading;
   }),
-  episode.as((_episode) => _episode === -1 ? null : _episode ? EpisodePlayer(_episode) : EpisodePlayerLoading)
+  episode2.as((_episode) => _episode === -1 ? null : _episode ? EpisodePlayer(_episode) : EpisodePlayerLoading)
 ];
 
 // src/components/footer.ts
@@ -951,8 +987,8 @@ var Footer = {
 };
 
 // src/components/search.result.ts
-function SearchResult(result, statusful3) {
-  const status = statusful3.as((statusful4) => statusful4.find((s) => s.urlTitle === result.urlTitle)?.status);
+function SearchResult(result, statusful5) {
+  const status = statusful5.as((statusful6) => statusful6.find((s) => s.urlTitle === result.urlTitle)?.status);
   let fetched = false;
   let tId = null;
   const prefetch = () => {
@@ -1079,12 +1115,37 @@ window.addEventListener("click", (e) => {
 });
 
 // src/components/logo.ts
-var Logo = `<svg viewBox="0 0 305 91" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M110.458 4C100.458 4 91.1704 13.213 79.9578 33C71.4578 48 68.9578 74.5 76.4578 82C83.9578 89.5 99.9578 90.5 111.958 90.5C123.958 90.5 135.458 90.5 143.958 83C152.458 75.5 148.958 45.5 137.958 27.5C126.958 9.5 118.958 4 110.458 4ZM110.458 15.5C103.958 15.5 92.9051 31 88.9578 41C80.4709 62.5 81.9578 71 85.4578 75C88.9578 79 107.958 79.5 111.958 79.5C115.958 79.5 133.958 78 135.958 75C137.958 72 140.208 59.5 130.958 41C127.458 34 117.958 15.5 110.458 15.5Z"/>
-<path d="M55.724 0.0130428C48.524 -0.386957 48.3907 8.51304 49.224 13.013C35.224 21.013 13.224 43.013 3.22398 68.013C-6.77602 93.013 9.22398 89.513 14.224 89.513C19.224 89.513 49.224 89.013 55.724 89.513C62.224 90.013 66.724 83.513 63.224 64.513C59.724 45.513 44.724 59.013 37.224 69.513C29.724 80.013 38.724 74.513 42.724 72.513C46.724 70.513 51.224 66.513 55.724 71.013C60.224 75.513 56.724 88.513 29.224 81.013C1.72399 73.513 30.724 42.513 38.724 32.013C46.724 21.513 53.724 26.513 57.724 26.513C61.724 26.513 63.224 20.013 63.224 16.513C63.224 13.013 64.724 0.513043 55.724 0.0130428Z"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M266.458 4C256.458 4 247.17 13.213 235.958 33C227.458 48 224.958 74.5 232.458 82C239.958 89.5 255.958 90.5 267.958 90.5C279.958 90.5 291.458 90.5 299.958 83C308.458 75.5 304.958 45.5 293.958 27.5C282.958 9.5 274.958 4 266.458 4ZM266.458 15.5C259.958 15.5 248.905 31 244.958 41C236.471 62.5 237.958 71 241.458 75C244.958 79 263.958 79.5 267.958 79.5C271.958 79.5 289.958 78 291.958 75C293.958 72 296.208 59.5 286.958 41C283.458 34 273.958 15.5 266.458 15.5Z"/>
-<path d="M211.724 0.0130428C204.524 -0.386957 204.391 8.51304 205.224 13.013C191.224 21.013 169.224 43.013 159.224 68.013C149.224 93.013 165.224 89.513 170.224 89.513C175.224 89.513 205.224 89.013 211.724 89.513C218.224 90.013 222.724 83.513 219.224 64.513C215.724 45.513 200.724 59.013 193.224 69.513C185.724 80.013 194.724 74.513 198.724 72.513C202.724 70.513 207.224 66.513 211.724 71.013C216.224 75.513 212.724 88.513 185.224 81.013C157.724 73.513 186.724 42.513 194.724 32.013C202.724 21.513 209.724 26.513 213.724 26.513C217.724 26.513 219.224 20.013 219.224 16.513C219.224 13.013 220.724 0.513043 211.724 0.0130428Z"/>
-</svg>`;
+var Logo = {
+  tagName: "svg",
+  namespaceURI: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 304 90",
+  children: [
+    {
+      tagName: "path",
+      namespaceURI: "http://www.w3.org/2000/svg",
+      d: "M48.1689 13.0291C47.5022 8.86247 47.6689 0.429137 53.6689 0.0291371C61.1689 -0.470863 62.6689 5.52914 62.1689 13.0291C61.6689 20.5291 60.1689 26.5291 55.1689 26.5291C53.5509 26.5291 52.487 25.9888 51.4901 25.4826C49.4062 24.4243 47.6151 23.5147 41.6689 28C30.4002 36.5 7.1134 66.5981 17.6689 75.0291C28.9002 84 55.1689 84.5 56.1689 76.5291C57.5396 65.6034 47.1689 68.0291 41.6689 71.5291C36.1689 75.0291 32.1689 77.0291 34.6689 71.5291C37.1689 66.0291 45.1689 54.0291 52.6689 55.0291C60.1689 56.0291 64.1689 65.0291 63.1689 76.5291C62.1689 88.0291 59.1689 89.5291 49.6689 89.0291C40.1689 88.5291 20.1689 87.5291 9.16888 89.0291C-1.83112 90.5291 -1.05702 77.7301 1.90022 70C9.16888 51 25.6689 25.0291 48.1689 13.0291Z"
+    },
+    {
+      tagName: "path",
+      namespaceURI: "http://www.w3.org/2000/svg",
+      "fill-rule": "evenodd",
+      "clip-rule": "evenodd",
+      d: "M109.9 2.5C106.4 2.5 97.5002 5.1 89.9002 15.5C80.4002 28.5 63.9002 62.5 73.9002 78.5C79.1002 86.1 90.0669 88.3333 94.9002 88.5H124.4C128.067 88.5 136.8 87.2 142.4 82C158.016 67.5 139.4 30 129.9 15.5C122.3 3.9 113.4 2 109.9 2.5ZM109.814 13C104.314 13 93.8142 29 89.3142 38C84.8142 47 75.8142 74 90.3142 75.5C104.814 77 120.927 77.9517 129.814 75.5C144.314 71.5 135.356 49 130.314 38C124.814 26 115.314 13 109.814 13Z"
+    },
+    {
+      tagName: "path",
+      namespaceURI: "http://www.w3.org/2000/svg",
+      d: "M203.169 13.0291C202.502 8.86247 202.669 0.429137 208.669 0.0291371C216.169 -0.470863 217.669 5.52914 217.169 13.0291C216.669 20.5291 215.169 26.5291 210.169 26.5291C208.551 26.5291 207.487 25.9888 206.49 25.4826C204.406 24.4243 202.615 23.5147 196.669 28C185.4 36.5 162.113 66.5981 172.669 75.0291C183.9 84 210.169 84.5 211.169 76.5291C212.54 65.6034 202.169 68.0291 196.669 71.5291C191.169 75.0291 187.169 77.0291 189.669 71.5291C192.169 66.0291 200.169 54.0291 207.669 55.0291C215.169 56.0291 219.169 65.0291 218.169 76.5291C217.169 88.0291 214.169 89.5291 204.669 89.0291C195.169 88.5291 175.169 87.5291 164.169 89.0291C153.169 90.5291 153.943 77.7301 156.9 70C164.169 51 180.669 25.0291 203.169 13.0291Z"
+    },
+    {
+      tagName: "path",
+      namespaceURI: "http://www.w3.org/2000/svg",
+      "fill-rule": "evenodd",
+      "clip-rule": "evenodd",
+      d: "M264.9 2.5C261.4 2.5 252.5 5.1 244.9 15.5C235.4 28.5 218.9 62.5 228.9 78.5C234.1 86.1 245.067 88.3333 249.9 88.5H279.4C283.067 88.5 291.8 87.2 297.4 82C313.016 67.5 294.4 30 284.9 15.5C277.3 3.9 268.4 2 264.9 2.5ZM264.814 13C259.314 13 248.814 29 244.314 38C239.814 47 230.814 74 245.314 75.5C259.814 77 275.927 77.9517 284.814 75.5C299.314 71.5 290.356 49 285.314 38C279.814 26 270.314 13 264.814 13Z"
+    }
+  ]
+};
 
 // src/components/header.ts
 var Header = {
@@ -1096,7 +1157,7 @@ var Header = {
         {
           tagName: "button",
           className: "logo",
-          innerHTML: Logo,
+          children: [Logo],
           onclick: () => {
             if (route.value !== Route.Home) {
               urlTitle.value = null;
@@ -1111,8 +1172,8 @@ var Header = {
 };
 
 // src/components/card.ts
-function Card(entry, statusful3) {
-  const status = statusful3.as((_statusful) => _statusful.find((s) => s.urlTitle === entry.urlTitle)?.status);
+function Card(entry, statusful6) {
+  const status = statusful6.as((_statusful) => _statusful.find((s) => s.urlTitle === entry.urlTitle)?.status);
   let fetched = false;
   let tId = null;
   const prefetch = () => {

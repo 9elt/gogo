@@ -1,8 +1,8 @@
-import { Status, episodeNumber, search, urlTitle } from "../global";
+import { episodeNumber, search, urlTitle } from "../global";
 import { prefetcher } from "../lib/cache";
 import { getDetails, getDetailsCacheId, type SearchResult } from "../lib/gogo";
-import { StateRef } from "../lib/states";
-import type { Statusful } from "../lib/statusful";
+import { StateRef } from "../lib/state.ref";
+import { Status, type Statusful } from "../lib/statusful";
 
 export function SearchResult(
     result: SearchResult,

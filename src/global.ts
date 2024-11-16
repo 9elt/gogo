@@ -1,5 +1,6 @@
 import { State } from "@9elt/miniframe";
-import { epCache } from "./lib/ep.cache";
+import { AsyncState } from "./lib/async.state";
+import { episodeCache } from "./lib/episode.cache";
 import {
     getDetails,
     getEpisode,
@@ -7,7 +8,6 @@ import {
     getSearch,
     type SearchResult,
 } from "./lib/gogo";
-import { AsyncState, UrlState } from "./lib/states";
 import {
     STATUSFUL_MAX_SIZE,
     Status,
@@ -15,6 +15,7 @@ import {
     dumpStatusful,
     loadStatusful,
 } from "./lib/statusful";
+import { UrlState } from "./lib/url.state";
 
 const QK_RELEASES_PAGE = "releases";
 const QK_WATCHING_PAGE = "watching";
@@ -63,7 +64,7 @@ export const details = urlTitle.asyncAs(async (urlTitle) => {
         episodeNumber.value === null
     ) {
         episodeNumber.value =
-            epCache.get(urlTitle!) ||
+            episodeCache.get(urlTitle!) ||
             details.episodes[details.episodes.length - 1] ||
             -1;
     }
@@ -79,9 +80,9 @@ episodeNumber.sub((value) => {
         value !== -1 &&
         urlTitle.value !== null &&
         // NOTE: Avoid storing the default value
-        (epCache.get(urlTitle.value) !== null || value !== 1)
+        (episodeCache.get(urlTitle.value) !== null || value !== 1)
     ) {
-        epCache.add(urlTitle.value, value);
+        episodeCache.add(urlTitle.value, value);
     }
 });
 
@@ -99,8 +100,6 @@ export const statusful = new State(loadStatusful()) as State<Statusful[]> & {
     add: (value: SearchResult, status: Status) => void;
     remove: (value: SearchResult) => void;
 };
-
-export { Status };
 
 statusful.sub(dumpStatusful);
 

@@ -1,6 +1,6 @@
 import { State, type MiniElement } from "@9elt/miniframe";
 import { statusful, watching, watchingPage, type Watching } from "../global";
-import { StateRef } from "../lib/states";
+import { StateRef } from "../lib/state.ref";
 import { Card } from "./card";
 import { ListFooter } from "./list.footer";
 import { ListHeader } from "./list.header";

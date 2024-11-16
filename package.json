@@ -10,6 +10,7 @@
     },
     "scripts": {
         "build": "bun build.js && cp -r media/* docs",
+        "build:safe": "npm run format && tsc && npm run build",
         "dev": "http-server",
         "format": "prettier --write \"src/**/*.{ts,css}\""
     }

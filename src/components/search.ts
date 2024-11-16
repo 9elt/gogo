@@ -1,6 +1,6 @@
 import { createNode } from "@9elt/miniframe";
 import { results, search, statusful } from "../global";
-import { StateRef } from "../lib/states";
+import { StateRef } from "../lib/state.ref";
 import { debounce, isMobile } from "../util";
 import { SearchResult } from "./search.result";
 

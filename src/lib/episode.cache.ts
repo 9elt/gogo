@@ -1,32 +1,32 @@
 const LSK_EP_CACHE = "epcache";
 const SER_VERSION = "v1.";
-const CACHE_MAX_SIZE = 256;
+const EPISODE_CACHE_MAX_SIZE = 256;
 
-export const epCache = loadEpCache() as [string, number][] & {
+export const episodeCache = load() as [string, number][] & {
     get(id: string): number | undefined;
     add(id: string, ep: number): void;
 };
 
-epCache.get = (id) => {
-    return epCache.find((item) => item[0] === id)?.[1];
+episodeCache.get = (id) => {
+    return episodeCache.find((item) => item[0] === id)?.[1];
 };
 
-epCache.add = (id, ep) => {
-    for (const item of epCache) {
+episodeCache.add = (id, ep) => {
+    for (const item of episodeCache) {
         if (item[0] === id) {
             item[1] = ep;
-            dumpEpCache();
+            dump();
             return;
         }
     }
-    if (epCache.length > CACHE_MAX_SIZE) {
-        epCache.shift();
+    if (episodeCache.length > EPISODE_CACHE_MAX_SIZE) {
+        episodeCache.shift();
     }
-    epCache.push([id, ep]);
-    dumpEpCache();
+    episodeCache.push([id, ep]);
+    dump();
 };
 
-function loadEpCache() {
+function load() {
     try {
         const raw = localStorage.getItem(LSK_EP_CACHE);
         return raw ? deserialize(raw) : [];
@@ -35,8 +35,8 @@ function loadEpCache() {
     }
 }
 
-function dumpEpCache() {
-    localStorage.setItem(LSK_EP_CACHE, serialize(epCache));
+function dump() {
+    localStorage.setItem(LSK_EP_CACHE, serialize(episodeCache));
 }
 
 function serialize(value: [string, number][]) {

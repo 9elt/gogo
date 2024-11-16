@@ -1,7 +1,7 @@
 import { type MiniElement } from "@9elt/miniframe";
 import { releasesPage, statusful } from "../global";
 import type { Release } from "../lib/gogo";
-import { StateRef } from "../lib/states";
+import { StateRef } from "../lib/state.ref";
 import { randomDelay } from "../util";
 import { Card } from "./card";
 import { ListFooter } from "./list.footer";

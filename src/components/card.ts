@@ -1,9 +1,9 @@
 import { type MiniElement } from "@9elt/miniframe";
-import { Status, episodeNumber, urlTitle } from "../global";
+import { episodeNumber, urlTitle } from "../global";
 import { prefetcher } from "../lib/cache";
 import { getDetails, getDetailsCacheId } from "../lib/gogo";
-import type { StateRef } from "../lib/states";
-import type { Statusful } from "../lib/statusful";
+import type { StateRef } from "../lib/state.ref";
+import { Status, type Statusful } from "../lib/statusful";
 
 export function Card(
     entry: {

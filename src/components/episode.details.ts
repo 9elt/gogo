@@ -1,9 +1,11 @@
 import { createNode, type MiniElement } from "@9elt/miniframe";
-import { Status, statusful } from "../global";
+import { statusful } from "../global";
 import type { EpisodeDetails } from "../lib/gogo";
-import { StateRef } from "../lib/states";
-import { Statusful } from "../lib/statusful";
+import { StateRef } from "../lib/state.ref";
+import { Status, type Statusful } from "../lib/statusful";
 import { isMobile, randomDelay } from "../util";
+import { ArrowLeft } from "./arrow.left";
+import { ArrowRight } from "./arrow.right";
 import { ExpandableText } from "./expandable.text";
 
 export function EpisodeDetails(
@@ -165,7 +167,7 @@ export function EpisodeDetails(
                             (previous) =>
                                 (previous === null && "disabled") || null
                         ),
-                        children: ["🢐 previous"],
+                        children: [ArrowLeft, " previous"],
                         onclick: previous.as(
                             (previous) =>
                                 previous !== null &&
@@ -211,7 +213,7 @@ export function EpisodeDetails(
                         className: next.as(
                             (next) => (next === null && "disabled") || null
                         ),
-                        children: ["next 🢒"],
+                        children: ["next ", ArrowRight],
                         onclick: next.as(
                             (next) =>
                                 next !== null &&
@@ -259,7 +261,7 @@ export const EpisodeDetailsLoading = {
                     style: {
                         animationDelay: randomDelay(),
                     },
-                    children: ["🢐 previous"],
+                    children: [ArrowLeft, " previous"],
                 },
                 {
                     tagName: "div",
@@ -274,7 +276,7 @@ export const EpisodeDetailsLoading = {
                     style: {
                         animationDelay: randomDelay(),
                     },
-                    children: ["next 🢒"],
+                    children: ["next ", ArrowRight],
                 },
             ],
         },
