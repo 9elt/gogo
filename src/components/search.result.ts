@@ -1,15 +1,6 @@
-import {
-    Status,
-    episodeNumber,
-    search,
-    urlTitle,
-} from "../global";
+import { Status, episodeNumber, search, urlTitle } from "../global";
 import { prefetcher } from "../lib/cache";
-import {
-    getDetails,
-    getDetailsCacheId,
-    type SearchResult,
-} from "../lib/gogo";
+import { getDetails, getDetailsCacheId, type SearchResult } from "../lib/gogo";
 import { StateRef } from "../lib/states";
 import type { Statusful } from "../lib/statusful";
 
@@ -19,20 +10,16 @@ export function SearchResult(
 ) {
     const status = statusful.as(
         (statusful) =>
-            statusful.find(
-                (s) => s.urlTitle === result.urlTitle
-            )?.status
+            statusful.find((s) => s.urlTitle === result.urlTitle)?.status
     );
 
     let fetched = false;
-    let tId: number;
+    let tId: ReturnType<typeof setTimeout> | null = null;
     const prefetch = () => {
         if (!fetched) {
             tId = setTimeout(() => {
                 if (!fetched) {
-                    const id = getDetailsCacheId(
-                        result.urlTitle
-                    );
+                    const id = getDetailsCacheId(result.urlTitle);
                     const _result = getDetails(result.urlTitle);
 
                     prefetcher.add(id, _result);
@@ -76,8 +63,7 @@ export function SearchResult(
                 tagName: "div",
                 className: "image",
                 style: {
-                    backgroundImage:
-                        "url(" + encodeURI(result.image) + ")",
+                    backgroundImage: "url(" + encodeURI(result.image) + ")",
                 },
                 children: [
                     {

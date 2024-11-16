@@ -7,12 +7,7 @@ import {
     EpisodePlayer,
     EpisodePlayerLoading,
 } from "../components/episode.player";
-import {
-    details,
-    episode,
-    episodeNumber,
-    statusful,
-} from "../global";
+import { details, episode, episodeNumber, statusful } from "../global";
 import { StateRef } from "../lib/states";
 
 const statusfulRef = new StateRef(statusful);
@@ -25,11 +20,7 @@ export const Episode: MiniElement[] = [
         episodeNumberRef.clear();
 
         return _details
-            ? EpisodeDetails(
-                  _details,
-                  statusfulRef,
-                  episodeNumberRef
-              )
+            ? EpisodeDetails(_details, statusfulRef, episodeNumberRef)
             : EpisodeDetailsLoading;
     }),
     // @ts-ignore

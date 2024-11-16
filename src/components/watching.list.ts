@@ -1,10 +1,5 @@
 import { State, type MiniElement } from "@9elt/miniframe";
-import {
-    statusful,
-    watching,
-    watchingPage,
-    type Watching,
-} from "../global";
+import { statusful, watching, watchingPage, type Watching } from "../global";
 import { StateRef } from "../lib/states";
 import { Card } from "./card";
 import { ListFooter } from "./list.footer";
@@ -17,13 +12,9 @@ const WatchingPagination = State.use({
     watchingPage,
     watching,
 }).as((g) =>
-    ListPagination(
-        g.watchingPage,
-        g.watching.maxPage,
-        (page) => {
-            watchingPage.value = page;
-        }
-    )
+    ListPagination(g.watchingPage, g.watching.maxPage, (page) => {
+        watchingPage.value = page;
+    })
 );
 
 export function WatchingList(_watching: Watching): MiniElement {

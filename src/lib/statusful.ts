@@ -53,14 +53,10 @@ function deserialize(value: string): Statusful[] {
     const result = new Array<Statusful>(values.length);
 
     for (let i = 0; i < values.length; i++) {
-        let [title, urlTitle, image, status] =
-            values[i].split("\n");
+        let [title, urlTitle, image, status] = values[i].split("\n");
 
         if (!title || !urlTitle || !image || !status) {
-            console.warn(
-                "failed to parse statusful item",
-                values[i]
-            );
+            console.warn("failed to parse statusful item", values[i]);
             continue;
         }
 

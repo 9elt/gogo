@@ -51,9 +51,7 @@ export async function getEpisode(
             "a[data-video]"
         ) as HTMLAnchorElement | null;
 
-        const server = _li.className
-            .replace("server", "")
-            .trim();
+        const server = _li.className.replace("server", "").trim();
         const href = _a?.dataset.video;
 
         if (!href || !server) {
@@ -95,12 +93,9 @@ export function getDetailsCacheId(urlTitle: string) {
     return "GET details" + urlTitle;
 }
 
-export async function getDetails(
-    urlTitle: string
-): Promise<EpisodeDetails> {
+export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
     const cacheId = getDetailsCacheId(urlTitle);
-    const cached =
-        prefetcher.get(cacheId) || cache.get(cacheId);
+    const cached = prefetcher.get(cacheId) || cache.get(cacheId);
 
     if (cached) {
         return cached;
@@ -114,9 +109,7 @@ export async function getDetails(
 
     _TMP.innerHTML = sanitize(await raw.text());
 
-    const title = _TMP.querySelector(
-        ".anime_info_body_bg>h1"
-    )?.textContent;
+    const title = _TMP.querySelector(".anime_info_body_bg>h1")?.textContent;
 
     const episodeListId = _TMP
         .querySelector("input#movie_id")
@@ -139,9 +132,7 @@ export async function getDetails(
         lastEpisode = Math.max(lastEpisode, Number(end));
     }
 
-    const _items = _TMP.querySelectorAll(
-        ".anime_info_body_bg>p.type"
-    );
+    const _items = _TMP.querySelectorAll(".anime_info_body_bg>p.type");
 
     const data: {
         genres?: string[];
@@ -165,17 +156,13 @@ export async function getDetails(
 
         switch (key) {
             case "Genre:":
-                data.genres = text
-                    .split(/,|;/)
-                    .map((genre) => genre.trim());
+                data.genres = text.split(/,|;/).map((genre) => genre.trim());
                 break;
             case "Released:":
                 data.release = Number(text);
                 break;
             case "Other name:":
-                data.alias = text
-                    .split(/,|;/)
-                    .map((alias) => alias.trim());
+                data.alias = text.split(/,|;/).map((alias) => alias.trim());
                 break;
             case "Status:":
                 data.status = text as EpisodeStatus;
@@ -188,9 +175,7 @@ export async function getDetails(
         "no description provided.";
 
     const image = (
-        _TMP.querySelector(
-            ".anime_info_body_bg>img"
-        ) as HTMLImageElement | null
+        _TMP.querySelector(".anime_info_body_bg>img") as HTMLImageElement | null
     )?.dataset.src;
 
     if (!title || !episodeListId || !description || !image) {
@@ -215,11 +200,7 @@ export async function getDetails(
         episodes:
             lastEpisode === 0
                 ? []
-                : await getEpisodeList(
-                      episodeListId,
-                      0,
-                      lastEpisode
-                  ),
+                : await getEpisodeList(episodeListId, 0, lastEpisode),
         description,
         image,
         ...data,
@@ -282,9 +263,7 @@ export type SearchResult = {
     image: string;
 };
 
-export async function getSearch(
-    search: string
-): Promise<SearchResult[]> {
+export async function getSearch(search: string): Promise<SearchResult[]> {
     const cacheId = "GET search" + search;
     const cached = cache.get(cacheId);
 
@@ -305,9 +284,7 @@ export async function getSearch(
 
     _TMP.innerHTML = sanitize((await raw.json()).content);
 
-    const _divs = _TMP.querySelectorAll(
-        "#header_search_autocomplete_body>div"
-    );
+    const _divs = _TMP.querySelectorAll("#header_search_autocomplete_body>div");
 
     const result = new Array<SearchResult>(_divs.length);
 
@@ -319,16 +296,13 @@ export async function getSearch(
         const urlTitle = _div
             .querySelector("a")
             ?.href.replace(
-                window.location.origin +
-                    window.location.pathname,
+                window.location.origin + window.location.pathname,
                 ""
             )
             .replace("category/", "");
 
         const image = (
-            _div.querySelector(
-                ".thumbnail-recent_search"
-            ) as HTMLDivElement
+            _div.querySelector(".thumbnail-recent_search") as HTMLDivElement
         )?.style.background
             .replace('url("', "")
             .replace('")', "");
@@ -359,9 +333,7 @@ export type Release = {
     episode: number;
 };
 
-export async function getReleases(
-    page: number
-): Promise<Release[]> {
+export async function getReleases(page: number): Promise<Release[]> {
     const cacheId = "GET releases" + page;
     const cached = cache.get(cacheId);
 
@@ -370,10 +342,7 @@ export async function getReleases(
     }
 
     const raw = await fetch(
-        GOGO_CDN_URL +
-            "/ajax/page-recent-release.html?page=" +
-            page +
-            "&type=1"
+        GOGO_CDN_URL + "/ajax/page-recent-release.html?page=" + page + "&type=1"
     );
 
     if (!raw.ok) {

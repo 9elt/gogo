@@ -21,10 +21,7 @@ const QK_WATCHING_PAGE = "watching";
 const QK_SEARCH = "search";
 const QK_TITLE = "title";
 
-export const releasesPage = new UrlState(
-    QK_RELEASES_PAGE,
-    Number
-);
+export const releasesPage = new UrlState(QK_RELEASES_PAGE, Number);
 releasesPage.value ||= 1;
 
 export const releases = releasesPage.asyncAs(async (page) =>
@@ -52,8 +49,7 @@ const headTitle = document.querySelector("head>title")!;
 const originalTitle = headTitle.textContent;
 
 export const details = urlTitle.asyncAs(async (urlTitle) => {
-    const details =
-        urlTitle === null ? null : await getDetails(urlTitle);
+    const details = urlTitle === null ? null : await getDetails(urlTitle);
 
     headTitle.textContent = details?.title || originalTitle;
 
@@ -75,9 +71,7 @@ export const details = urlTitle.asyncAs(async (urlTitle) => {
     return details;
 }, null);
 
-export const episodeNumber = new AsyncState<number | null>(
-    null
-);
+export const episodeNumber = new AsyncState<number | null>(null);
 
 episodeNumber.sub((value) => {
     if (
@@ -91,22 +85,17 @@ episodeNumber.sub((value) => {
     }
 });
 
-export const episode = episodeNumber.asyncAs(
-    async (episodeNumber) =>
-        urlTitle.value &&
-        episodeNumber !== null &&
-        episodeNumber !== -1
-            ? await getEpisode(urlTitle.value, episodeNumber)
-            : episodeNumber === -1
-              ? // NOTE: No episode available
-                -1
-              : // NOTE: Loading
-                null
+export const episode = episodeNumber.asyncAs(async (episodeNumber) =>
+    urlTitle.value && episodeNumber !== null && episodeNumber !== -1
+        ? await getEpisode(urlTitle.value, episodeNumber)
+        : episodeNumber === -1
+          ? // NOTE: No episode available
+            -1
+          : // NOTE: Loading
+            null
 );
 
-export const statusful = new State(loadStatusful()) as State<
-    Statusful[]
-> & {
+export const statusful = new State(loadStatusful()) as State<Statusful[]> & {
     add: (value: SearchResult, status: Status) => void;
     remove: (value: SearchResult) => void;
 };
@@ -138,10 +127,7 @@ statusful.remove = (value) => {
 
 export const WATCHING_PAGE_SIZE = 8;
 
-export const watchingPage = new UrlState(
-    QK_WATCHING_PAGE,
-    Number
-);
+export const watchingPage = new UrlState(QK_WATCHING_PAGE, Number);
 watchingPage.value ||= 1;
 
 export type Watching = {
@@ -150,22 +136,15 @@ export type Watching = {
 };
 
 statusful.sub((_statusful) => {
-    const maxPage = Math.ceil(
-        _statusful.length / WATCHING_PAGE_SIZE
-    );
-    watchingPage.value = Math.min(
-        watchingPage.value || 0,
-        maxPage
-    );
+    const maxPage = Math.ceil(_statusful.length / WATCHING_PAGE_SIZE);
+    watchingPage.value = Math.min(watchingPage.value || 0, maxPage);
 });
 
 export const watching = State.use({
     watchingPage,
     statusful,
 }).as((g) => {
-    const maxPage = Math.ceil(
-        g.statusful.length / WATCHING_PAGE_SIZE
-    );
+    const maxPage = Math.ceil(g.statusful.length / WATCHING_PAGE_SIZE);
 
     g.watchingPage ||= 1;
 

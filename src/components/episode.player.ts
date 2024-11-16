@@ -1,8 +1,4 @@
-import {
-    State,
-    createNode,
-    type MiniElement,
-} from "@9elt/miniframe";
+import { State, createNode, type MiniElement } from "@9elt/miniframe";
 import type { Episode } from "../lib/gogo";
 
 const LSK_SERVER = "server";
@@ -11,9 +7,8 @@ export function EpisodePlayer(_episode: Episode): MiniElement {
     const lastServer = localStorage.getItem(LSK_SERVER);
 
     const src = new State(
-        _episode.links.find(
-            (item) => item.server === lastServer
-        )?.href || _episode.links[0].href
+        _episode.links.find((item) => item.server === lastServer)?.href ||
+            _episode.links[0].href
     );
 
     const iframe = createNode({
@@ -47,16 +42,12 @@ export function EpisodePlayer(_episode: Episode): MiniElement {
                     ..._episode.links.map((item) => ({
                         tagName: "button",
                         className: src.as(
-                            (src) =>
-                                src === item.href && "active"
+                            (src) => src === item.href && "active"
                         ),
                         children: [item.server],
                         onclick: () => {
                             src.value = item.href;
-                            localStorage.setItem(
-                                LSK_SERVER,
-                                item.server
-                            );
+                            localStorage.setItem(LSK_SERVER, item.server);
                         },
                     })),
                 ],

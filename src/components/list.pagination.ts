@@ -15,15 +15,11 @@ export function ListPagination(
     let start = Math.min(
         page < size
             ? 1
-            : Math.ceil((page - right) / jump) * jump -
-                  jump +
-                  right,
+            : Math.ceil((page - right) / jump) * jump - jump + right,
         max + 1 - size
     );
 
-    const values = new Array<number>(
-        start < 1 ? size - 1 + start : size
-    );
+    const values = new Array<number>(start < 1 ? size - 1 + start : size);
 
     if (start < 1) {
         start = 1;

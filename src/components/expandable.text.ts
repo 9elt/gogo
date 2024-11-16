@@ -17,9 +17,7 @@ export function ExpandableText(text: string, limit: number) {
     return {
         tagName: "span",
         children: [
-            isOpen.as((isOpen) =>
-                isOpen ? text : text.slice(0, limit)
-            ),
+            isOpen.as((isOpen) => (isOpen ? text : text.slice(0, limit))),
             {
                 tagName: "small",
                 style: {
@@ -31,11 +29,7 @@ export function ExpandableText(text: string, limit: number) {
                 onkeydown: (e: KeyboardEvent) => {
                     e.key === "Enter" && onclick();
                 },
-                children: [
-                    isOpen.as((isOpen) =>
-                        isOpen ? " close" : "..."
-                    ),
-                ],
+                children: [isOpen.as((isOpen) => (isOpen ? " close" : "..."))],
             },
         ],
     };

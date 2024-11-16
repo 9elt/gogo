@@ -16,9 +16,7 @@ const ReleasesPagination = releasesPage.as((_page) =>
     })
 );
 
-export function ReleasesList(
-    _releases: Release[]
-): MiniElement {
+export function ReleasesList(_releases: Release[]): MiniElement {
     statusfulRef.clear();
 
     return {
@@ -31,9 +29,7 @@ export function ReleasesList(
             {
                 tagName: "div",
                 className: "card-list",
-                children: _releases.map((_entry) =>
-                    Card(_entry, statusfulRef)
-                ),
+                children: _releases.map((_entry) => Card(_entry, statusfulRef)),
             },
             // @ts-ignore
             ListFooter(ReleasesPagination),

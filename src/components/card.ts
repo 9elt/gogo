@@ -16,20 +16,16 @@ export function Card(
 ): MiniElement {
     const status = statusful.as(
         (_statusful) =>
-            _statusful.find(
-                (s) => s.urlTitle === entry.urlTitle
-            )?.status
+            _statusful.find((s) => s.urlTitle === entry.urlTitle)?.status
     );
 
     let fetched = false;
-    let tId: number;
+    let tId: ReturnType<typeof setTimeout> | null = null;
     const prefetch = () => {
         if (!fetched) {
             tId = setTimeout(() => {
                 if (!fetched) {
-                    const id = getDetailsCacheId(
-                        entry.urlTitle
-                    );
+                    const id = getDetailsCacheId(entry.urlTitle);
                     const result = getDetails(entry.urlTitle);
 
                     prefetcher.add(id, result);
@@ -58,9 +54,7 @@ export function Card(
         tagName: "div",
         tabIndex: 0,
         className: status.as((status) =>
-            status === Status.Watching
-                ? "card watching"
-                : "card"
+            status === Status.Watching ? "card watching" : "card"
         ),
         onmouseenter: prefetch,
         onmouseleave: cancel,
@@ -77,8 +71,7 @@ export function Card(
                 className: "image",
                 style: {
                     backgroundImage:
-                        entry.image &&
-                        "url(" + encodeURI(entry.image) + ")",
+                        entry.image && "url(" + encodeURI(entry.image) + ")",
                 },
             },
             // @ts-ignore

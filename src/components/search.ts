@@ -55,16 +55,12 @@ export const Search = createNode({
                             ? [
                                   {
                                       tagName: "p",
-                                      className:
-                                          "no-search-results",
+                                      className: "no-search-results",
                                       children: ["no results"],
                                   },
                               ]
                             : results.map((result) =>
-                                  SearchResult(
-                                      result,
-                                      statusfulRef
-                                  )
+                                  SearchResult(result, statusfulRef)
                               ),
                 }
             );
@@ -73,10 +69,7 @@ export const Search = createNode({
 });
 
 window.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (
-        document.activeElement?.tagName !== "INPUT" &&
-        e.key === "/"
-    ) {
+    if (document.activeElement?.tagName !== "INPUT" && e.key === "/") {
         e.preventDefault();
         SearchInput.focus();
     }
@@ -89,10 +82,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 window.addEventListener("click", (e) => {
-    if (
-        search.value !== null &&
-        !Search.contains(e.target as Node)
-    ) {
+    if (search.value !== null && !Search.contains(e.target as Node)) {
         search.value = null;
     }
 });
