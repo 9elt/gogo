@@ -266,6 +266,7 @@ export async function getSearch(search: string): Promise<SearchResult[]> {
             .querySelector("a")
             ?.href
             .replace(window.location.origin, "")
+            .replace("/gogo", "")
             .replace("/category/", "");
 
         const image = (_div.querySelector(".thumbnail-recent_search") as HTMLDivElement)
