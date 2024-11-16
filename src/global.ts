@@ -10,10 +10,10 @@ import {
 import { AsyncState, UrlState } from "./lib/states";
 import { STATUSFUL_MAX_SIZE, Status, Statusful, dumpStatusful, loadStatusful } from "./lib/statusful";
 
-export const page = new UrlState("page", Number);
-page.value ||= 1;
+export const releasesPage = new UrlState("releases", Number);
+releasesPage.value ||= 1;
 
-export const releases = page.asyncAs(async (page) =>
+export const releases = releasesPage.asyncAs(async (page) =>
     page === null ? [] : await getReleases(page)
 );
 
@@ -24,6 +24,15 @@ export const results = search.asyncAs(async (search) =>
 );
 
 export const urlTitle = new UrlState<string>("title", String);
+
+export enum Route {
+    Home,
+    Player,
+};
+
+export const route = urlTitle.as((title) =>
+    title === null ? Route.Home : Route.Player
+);
 
 const headTitle = document.querySelector("head>title")!;
 const originalTitle = headTitle.textContent;
@@ -86,3 +95,38 @@ statusful.add = (value, status) => {
 statusful.remove = (value) => {
     statusful.value = statusful.value.filter((v) => v.urlTitle !== value.urlTitle);
 }
+
+export const WATCHING_PAGE_SIZE = 8;
+
+export const watchingPage = new UrlState("watching", Number);
+watchingPage.value ||= 1;
+
+export type Watching = {
+    maxPage: number;
+    data: Statusful[];
+};
+
+statusful.sub((_statusful) => {
+    const maxPage = Math.ceil((_statusful.length) / WATCHING_PAGE_SIZE);
+    watchingPage.value = Math.min(watchingPage.value || 0, maxPage);
+});
+
+export const watching = State.use({ watchingPage, statusful }).as((g) => {
+    const maxPage = Math.ceil((g.statusful.length) / WATCHING_PAGE_SIZE);
+
+    g.watchingPage ||= 1;
+
+    if (g.watchingPage > maxPage) {
+        g.watchingPage = maxPage;
+    }
+
+    const data = g.statusful.slice().reverse().slice(
+        (g.watchingPage - 1) * WATCHING_PAGE_SIZE,
+        g.watchingPage * WATCHING_PAGE_SIZE
+    );
+
+    return {
+        maxPage,
+        data
+    };
+});

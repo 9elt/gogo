@@ -1,4 +1,4 @@
-import { cache } from "./cache";
+import { cache, prefetcher } from "./cache";
 
 const _TMP = document.createElement("div");
 
@@ -64,17 +64,27 @@ export async function getEpisode(name: string, episode: number): Promise<Episode
     return result;
 }
 
+type EpisodeStatus = "Ongoing" | "Completed" | "Upcoming";
+
 export type EpisodeDetails = {
     title: string;
     urlTitle: string;
     episodes: number[];
     description: string;
     image: string;
+    genres?: string[];
+    release?: number;
+    alias?: string[];
+    status?: EpisodeStatus;
 };
 
+export function getDetailsCacheId(urlTitle: string) {
+    return "GET details" + urlTitle;
+}
+
 export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
-    const cacheId = "GET details" + urlTitle;
-    const cached = cache.get(cacheId);
+    const cacheId = getDetailsCacheId(urlTitle);
+    const cached = prefetcher.get(cacheId) || cache.get(cacheId);
 
     if (cached) {
         return cached;
@@ -113,6 +123,44 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
         lastEpisode = Math.max(lastEpisode, Number(end));
     }
 
+    const _items = _TMP.querySelectorAll(".anime_info_body_bg>p.type");
+
+    const data: {
+        genres?: string[];
+        release?: number;
+        alias?: string[];
+        status?: EpisodeStatus;
+    } = {};
+
+    for (let i = 0; i < _items.length; i++) {
+        const _item = _items[i];
+        const _span = _item.querySelector("span");
+
+        if (!_span) {
+            continue;
+        }
+
+        const key = _span.textContent?.trim() || "";
+        _span.remove();
+
+        const text = _item.textContent?.trim() || "";
+
+        switch (key) {
+            case "Genre:":
+                data.genres = text.split(/,|;/).map((genre) => genre.trim());
+                break;
+            case "Released:":
+                data.release = Number(text);
+                break;
+            case "Other name:":
+                data.alias = text.split(/,|;/).map((alias) => alias.trim());
+                break;
+            case "Status:":
+                data.status = text as EpisodeStatus;
+                break;
+        }
+    }
+
     const description = _TMP
         .querySelector(".description")
         ?.textContent || "no description provided.";
@@ -141,6 +189,7 @@ export async function getDetails(urlTitle: string): Promise<EpisodeDetails> {
             await getEpisodeList(episodeListId, 0, lastEpisode),
         description,
         image,
+        ...data,
     };
 
     cache.add(cacheId, result);

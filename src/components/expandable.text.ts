@@ -10,6 +10,10 @@ export function ExpandableText(text: string, limit: number) {
 
     const isOpen = new State(false);
 
+    const onclick = () => {
+        isOpen.value = !isOpen.value;
+    }
+
     return {
         tagName: "span",
         children: [
@@ -22,8 +26,10 @@ export function ExpandableText(text: string, limit: number) {
                     color: "#666",
                     cursor: "pointer",
                 },
-                onclick: () => {
-                    isOpen.value = !isOpen.value;
+                tabIndex: 0,
+                onclick,
+                onkeydown: (e: KeyboardEvent) => {
+                    e.key === "Enter" && onclick();
                 },
                 children: [
                     isOpen.as(isOpen =>

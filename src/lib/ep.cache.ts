@@ -1,5 +1,6 @@
 const LSK_EP_CACHE = "epcache";
-const CACHE_MAX_SIZE = 64;
+const SER_VERSION = "v1.";
+const CACHE_MAX_SIZE = 256;
 
 export const epCache = loadEpCache() as [string, number][] & {
     get(id: string): number | undefined;
@@ -28,8 +29,7 @@ epCache.add = (id, ep) => {
 function loadEpCache() {
     try {
         const raw = localStorage.getItem(LSK_EP_CACHE);
-        const parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed : [];
+        return raw ? deserialize(raw) : [];
     }
     catch {
         return [];
@@ -37,5 +37,31 @@ function loadEpCache() {
 }
 
 function dumpEpCache() {
-    localStorage.setItem(LSK_EP_CACHE, JSON.stringify(epCache));
+    localStorage.setItem(LSK_EP_CACHE, serialize(epCache));
+}
+
+function serialize(value: [string, number][]) {
+    let result = SER_VERSION;
+
+    for (const [id, ep] of value) {
+        result += id + "\n" + ep + "\n\n";
+    }
+
+    return result.slice(0, -2);
+}
+
+function deserialize(value: string) {
+    if (!value.startsWith(SER_VERSION)) {
+        return [];
+    }
+
+    const values = value.replace(SER_VERSION, "").split("\n\n");
+    const result: [string, number][] = new Array(values.length);
+
+    for (let i = 0; i < values.length; i++) {
+        const [id, ep] = values[i].split("\n");
+        result[i] = [id, Number(ep)];
+    }
+
+    return result;
 }

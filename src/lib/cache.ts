@@ -23,3 +23,29 @@ cache.get = (id) => {
     }
     return null;
 };
+
+const PREFETCHER_MAX_SIZE = 8;
+
+export const prefetcher = [] as unknown as {
+    id: string;
+    data: Promise<any>;
+}[] & {
+    get(id: string): any;
+    add(id: string, data: Promise<any>): void;
+};
+
+prefetcher.add = (id, data) => {
+    prefetcher.push({ id, data });
+    if (prefetcher.length > PREFETCHER_MAX_SIZE) {
+        prefetcher.shift();
+    }
+};
+
+prefetcher.get = (id) => {
+    for (let i = prefetcher.length - 1; i >= 0; i--) {
+        if (prefetcher[i].id === id) {
+            return prefetcher[i].data;
+        }
+    }
+    return null;
+};

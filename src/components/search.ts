@@ -1,71 +1,148 @@
-import type { MiniElement } from "@9elt/miniframe";
+import { createNode } from "@9elt/miniframe";
 import { Status, episodeNumber, results, search, statusful, urlTitle } from "../global";
+import { prefetcher } from "../lib/cache";
+import { getDetails, getDetailsCacheId, type SearchResult } from "../lib/gogo";
+import { StateRef } from "../lib/states";
+import type { Statusful } from "../lib/statusful";
 
-export const Search: MiniElement = {
+const statusfulRef = new StateRef(statusful);
+
+const SearchInput = createNode({
+    tagName: "input",
+    type: "search",
+    placeholder: "Type '/' to search",
+    value: search.as((search) => search || ""),
+    oninput: debounce((e: any) => {
+        search.value = e.target.value.trim() || null;
+    }, 1_000),
+});
+
+window.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (
+        document.activeElement !== SearchInput &&
+        document.activeElement?.tagName !== "INPUT" &&
+        e.key === "/"
+    ) {
+        e.preventDefault();
+        SearchInput.focus();
+    }
+});
+
+export const Search = createNode({
+    // @ts-ignore
     tagName: "div",
+    className: "search-container",
     children: [
         // @ts-ignore
-        {
-            tagName: "input",
-            type: "search",
-            placeholder: "search",
-            value: search.as((search) => search || ""),
-            oninput: debounce((e: any) => {
-                search.value = e.target.value.trim() || null;
-            }, 1_000),
-        },
+        SearchInput,
         // @ts-ignore
-        {
-            tagName: "div",
-            style: { backgroundColor: "#6662" },
-            children: results.as((results) => results && (
-                results.length === 0 ? [
-                    {
-                        tagName: "p",
-                        children: ["no results"],
-                    }
-                ] : results.map((result) => {
-                    const status = statusful.as((statusful) =>
-                        statusful.find((s) => s.urlTitle === result.urlTitle)?.status
-                    );
+        results.as((results) => {
+            statusfulRef.clear();
 
-                    return {
-                        tagName: "div",
-                        style: {
-                            display: "flex",
-                            alignItems: "center",
-                            border: status.as((status) =>
-                                status === Status.Watching ? "2px solid #17a" :
-                                    "none"
-                            ),
-                        },
-                        children: [
-                            {
-                                tagName: "img",
-                                style: {
-                                    width: "100px",
-                                },
-                                src: result.image,
-                            },
+            return results && {
+                tagName: "div",
+                tabIndex: -1,
+                className: "search-results",
+                children: (
+                    results.length === 0
+                        ? [
                             {
                                 tagName: "p",
-                                style: {
-                                    cursor: "pointer",
-                                },
-                                children: [result.title],
-                                onclick: () => {
-                                    episodeNumber.value = null;
-                                    urlTitle.value = result.urlTitle;
-                                    search.value = null;
-                                },
-                            },
+                                className: "no-results",
+                                children: ["no results"],
+                            }
                         ]
-                    };
-                })
-            )),
-        }
+                        : results.map((result) =>
+                            Result(result, statusfulRef)
+                        )
+                )
+            }
+        }),
     ],
-};
+});
+
+window.addEventListener("keydown", (e) => {
+    if (search.value !== null && e.key === "Escape") {
+        search.value = null;
+    }
+});
+
+window.addEventListener("click", (e) => {
+    if (search.value !== null && !Search.contains(e.target as Node)) {
+        search.value = null;
+    }
+});
+
+function Result(result: SearchResult, statusful: StateRef<Statusful[]>) {
+    const status = statusful.as((statusful) =>
+        statusful.find((s) => s.urlTitle === result.urlTitle)?.status
+    );
+
+    let fetched = false;
+    let tId: number;
+    const prefetch = () => {
+        if (!fetched) {
+            tId = setTimeout(() => {
+                if (!fetched) {
+                    const id = getDetailsCacheId(result.urlTitle);
+                    const _result = getDetails(result.urlTitle);
+
+                    prefetcher.add(id, _result);
+                    fetched = true;
+                }
+            }, 500);
+        }
+    }
+
+    const cancel = () => {
+        tId && clearTimeout(tId);
+    }
+
+    const onclick = () => {
+        cancel();
+        fetched = true;
+
+        episodeNumber.value = null;
+        urlTitle.value = result.urlTitle;
+        search.value = null;
+    };
+
+    return {
+        tagName: "div",
+        tabIndex: 0,
+        className: status.as((status) =>
+            status === Status.Watching ? "result watching" :
+                "result"
+        ),
+        onmouseenter: prefetch,
+        onmouseleave: cancel,
+        onfocus: prefetch,
+        onblur: cancel,
+        onclick,
+        onkeydown: (e: KeyboardEvent) => {
+            e.key === "Enter" && onclick();
+        },
+        children: [
+            {
+                tagName: "div",
+                className: "image",
+                style: {
+                    backgroundImage: "url(" + encodeURI(result.image) + ")",
+                },
+                children: [
+                    {
+                        tagName: "div",
+                        className: "status-bar",
+                    },
+                ],
+            },
+            {
+                tagName: "p",
+                children: [result.title],
+            },
+        ]
+    };
+}
 
 function debounce<F extends (...args: any[]) => any>(f: F, ms: number): F {
     let timeout: number | null = null;
