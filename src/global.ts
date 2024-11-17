@@ -86,14 +86,15 @@ episodeNumber.sub((value) => {
     }
 });
 
-export const episode = episodeNumber.asyncAs(async (episodeNumber) =>
-    urlTitle.value && episodeNumber !== null && episodeNumber !== -1
-        ? await getEpisode(urlTitle.value, episodeNumber)
-        : episodeNumber === -1
-          ? // NOTE: No episode available
-            -1
-          : // NOTE: Loading
-            null
+export const episode = AsyncState.useAsync({ episodeNumber, urlTitle }).asyncAs(
+    async (g) =>
+        g.urlTitle && g.episodeNumber !== null && g.episodeNumber !== -1
+            ? await getEpisode(g.urlTitle, g.episodeNumber)
+            : g.episodeNumber === -1
+              ? // NOTE: No episode available
+                -1
+              : // NOTE: Loading
+                null
 );
 
 export const statusful = new State(loadStatusful()) as State<Statusful[]> & {

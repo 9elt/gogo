@@ -127,6 +127,16 @@ class AsyncState extends State {
   constructor(value) {
     super(value);
   }
+  static useAsync(states) {
+    const group = new AsyncState({});
+    for (const key in states) {
+      group.value[key] = states[key].value;
+      states[key].sub((current) => group.value = Object.assign(group.value, {
+        [key]: current
+      }));
+    }
+    return group;
+  }
   asyncAs(fn, loadingStatus) {
     const child = new State(undefined);
     this.sub((value) => {
@@ -530,7 +540,7 @@ episodeNumber.sub((value) => {
     episodeCache.add(urlTitle.value, value);
   }
 });
-var episode2 = episodeNumber.asyncAs(async (episodeNumber2) => urlTitle.value && episodeNumber2 !== null && episodeNumber2 !== -1 ? await getEpisode(urlTitle.value, episodeNumber2) : episodeNumber2 === -1 ? -1 : null);
+var episode2 = AsyncState.useAsync({ episodeNumber, urlTitle }).asyncAs(async (g) => g.urlTitle && g.episodeNumber !== null && g.episodeNumber !== -1 ? await getEpisode(g.urlTitle, g.episodeNumber) : g.episodeNumber === -1 ? -1 : null);
 var statusful2 = new State(loadStatusful());
 statusful2.sub(dumpStatusful);
 statusful2.add = (value, status) => {
