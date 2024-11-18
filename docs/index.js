@@ -988,19 +988,18 @@ var EpisodeDetailsLoading = jsx("div", {
 function EpisodePlayer(_episode) {
   const lastServer = localStorage.getItem(LSK_SERVER);
   const src = new State(_episode.links.find((item) => item.server === lastServer)?.href || _episode.links[0].href);
-  const iframe = createNode(jsx("iframe", {
-    className: "player-iframe",
-    src
-  }, undefined, false, undefined, this));
-  iframe.setAttribute("allowfullscreen", "true");
-  iframe.setAttribute("frameborder", "0");
-  iframe.setAttribute("marginwidth", "0");
-  iframe.setAttribute("marginheight", "0");
-  iframe.setAttribute("scrolling", "no");
   return jsx("div", {
     className: "player",
     children: [
-      iframe,
+      jsx("iframe", {
+        className: "player-iframe",
+        src,
+        allowFullscreen: true,
+        frameBorder: 0,
+        marginWidth: 0,
+        marginHeight: 0,
+        scrolling: "no"
+      }, undefined, false, undefined, this),
       jsx("div", {
         className: "player-server-list",
         children: [

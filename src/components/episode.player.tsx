@@ -11,17 +11,17 @@ export function EpisodePlayer(_episode: Episode): MiniElement {
             _episode.links[0].href
     );
 
-    const iframe = createNode(<iframe className="player-iframe" src={src} />);
-
-    iframe.setAttribute("allowfullscreen", "true");
-    iframe.setAttribute("frameborder", "0");
-    iframe.setAttribute("marginwidth", "0");
-    iframe.setAttribute("marginheight", "0");
-    iframe.setAttribute("scrolling", "no");
-
     return (
         <div className="player">
-            {iframe}
+            <iframe
+                className="player-iframe"
+                src={src}
+                allowFullscreen={true}
+                frameBorder={0}
+                marginWidth={0}
+                marginHeight={0}
+                scrolling="no"
+            />
             <div className="player-server-list">
                 <small>servers</small>
                 {_episode.links.map((item) => (
