@@ -42,40 +42,32 @@ export function SearchResult(
         search.value = null;
     };
 
-    return {
-        tagName: "div",
-        tabIndex: 0,
-        className: status.as((status) =>
-            status === Status.Watching
-                ? "search-result watching"
-                : "search-result"
-        ),
-        onmouseenter: prefetch,
-        onmouseleave: cancel,
-        onfocus: prefetch,
-        onblur: cancel,
-        onclick,
-        onkeydown: (e: KeyboardEvent) => {
-            e.key === "Enter" && onclick();
-        },
-        children: [
-            {
-                tagName: "div",
-                className: "image",
-                style: {
+    return (
+        <div
+            tabIndex={0}
+            className={status.as((status) =>
+                status === Status.Watching
+                    ? "search-result watching"
+                    : "search-result"
+            )}
+            onmouseenter={prefetch}
+            onmouseleave={cancel}
+            onfocus={prefetch}
+            onblur={cancel}
+            onclick={onclick}
+            onkeydown={(e: KeyboardEvent) => {
+                e.key === "Enter" && onclick();
+            }}
+        >
+            <div
+                className="image"
+                style={{
                     backgroundImage: "url(" + encodeURI(result.image) + ")",
-                },
-                children: [
-                    {
-                        tagName: "div",
-                        className: "status-bar",
-                    },
-                ],
-            },
-            {
-                tagName: "p",
-                children: [result.title],
-            },
-        ],
-    };
+                }}
+            >
+                <div className="status-bar"></div>
+            </div>
+            <p>{result.title}</p>
+        </div>
+    );
 }

@@ -583,366 +583,6 @@ var watching = State.use({
   };
 });
 
-// src/util.ts
-function randomDelay() {
-  return (Math.random() * 300).toFixed(0) + "ms";
-}
-function debounce(f, ms) {
-  let timeout = null;
-  return function(...args) {
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-    timeout = setTimeout(() => {
-      f(...args);
-      timeout = null;
-    }, ms);
-  };
-}
-var isMobile = matchMedia("(max-width: 768px)").matches;
-
-// src/components/arrow.left.ts
-var ArrowLeft = {
-  tagName: "svg",
-  namespaceURI: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 24 24",
-  style: {
-    width: "24px",
-    height: "24px"
-  },
-  children: [
-    {
-      tagName: "path",
-      namespaceURI: "http://www.w3.org/2000/svg",
-      d: "M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"
-    }
-  ]
-};
-
-// src/components/arrow.right.ts
-var ArrowRight = {
-  tagName: "svg",
-  namespaceURI: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 24 24",
-  style: {
-    width: "24px",
-    height: "24px"
-  },
-  children: [
-    {
-      tagName: "path",
-      namespaceURI: "http://www.w3.org/2000/svg",
-      d: "M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
-    }
-  ]
-};
-
-// src/components/expandable.text.ts
-function ExpandableText(text, limit) {
-  if (text.length <= limit) {
-    return {
-      tagName: "span",
-      children: [text]
-    };
-  }
-  const isOpen = new State(false);
-  const onclick = () => {
-    isOpen.value = !isOpen.value;
-  };
-  return {
-    tagName: "span",
-    children: [
-      isOpen.as((isOpen2) => isOpen2 ? text : text.slice(0, limit)),
-      {
-        tagName: "small",
-        style: {
-          color: "#666",
-          cursor: "pointer"
-        },
-        tabIndex: 0,
-        onclick,
-        onkeydown: (e) => {
-          e.key === "Enter" && onclick();
-        },
-        children: [isOpen.as((isOpen2) => isOpen2 ? " close" : "...")]
-      }
-    ]
-  };
-}
-
-// src/components/episode.details.ts
-function EpisodeDetails(_details, _statusful, episodeNumber2) {
-  const status = _statusful.as((_statusful2) => _statusful2.find((s) => s.urlTitle === _details.urlTitle)?.status);
-  const next = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) - 1] || null);
-  const previous = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) + 1] || null);
-  const scrollToEpisode = _details.episodes.length > 25;
-  const buttonsElements = {};
-  if (scrollToEpisode) {
-    episodeNumber2.sub((episodeNumber3) => episodeNumber3 !== null && buttonsElements[episodeNumber3]?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "nearest"
-    }));
-  }
-  return {
-    tagName: "div",
-    className: status.as((status2) => status2 === Status.Watching ? "episode-header watching" : "episode-header"),
-    children: [
-      {
-        tagName: "div",
-        className: "data",
-        style: {},
-        children: [
-          {
-            tagName: "div",
-            className: "image",
-            style: {
-              backgroundImage: "url(" + encodeURI(_details.image) + ")"
-            },
-            children: [
-              {
-                tagName: "div",
-                className: "status-bar"
-              }
-            ]
-          },
-          {
-            tagName: "div",
-            className: "info",
-            children: [
-              {
-                tagName: "button",
-                children: [
-                  status.as((status2) => status2 === Status.Watching ? "\u2715 Remove from watchlist" : "\u2605 Add to watchlist")
-                ],
-                onclick: status.as((status2) => () => {
-                  status2 === Status.Watching ? statusful2.remove(_details) : statusful2.add(_details, Status.Watching);
-                })
-              },
-              {
-                tagName: "h2",
-                children: [
-                  status.as((status2) => status2 === Status.Watching ? "\u2605 " + _details.title : _details.title)
-                ]
-              },
-              (_details.release || _details.status) && {
-                tagName: "small",
-                children: [
-                  _details.release || null,
-                  _details.status && _details.release && " \u2022 " || null,
-                  _details.status || null
-                ]
-              },
-              _details.genres && {
-                tagName: "p",
-                className: "genres",
-                children: _details.genres.map((genre) => ({
-                  tagName: "span",
-                  children: [genre]
-                }))
-              },
-              {
-                tagName: "p",
-                className: "description",
-                children: [
-                  ExpandableText(_details.description, 200)
-                ]
-              },
-              _details.alias && {
-                tagName: "p",
-                className: "aliases",
-                children: [
-                  {
-                    tagName: "small",
-                    children: ["a.k.a. "]
-                  },
-                  {
-                    tagName: "i",
-                    children: [_details.alias.join(" \u2022 ")]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      _details.episodes.length > 0 && {
-        tagName: "div",
-        className: "episode-controls",
-        children: [
-          {
-            tagName: "button",
-            className: previous.as((previous2) => previous2 === null && "disabled" || null),
-            children: [ArrowLeft, " prev"],
-            onclick: previous.as((previous2) => previous2 !== null && (() => {
-              episodeNumber2.ref.value = previous2;
-            }))
-          },
-          {
-            tagName: "div",
-            className: _details.episodes.length < (isMobile ? 10 : 19) ? "episode-list center" : _details.episodes.length < 100 ? "episode-list" : _details.episodes.length < 200 ? "episode-list s" : "episode-list xs",
-            children: _details.episodes.map((number) => {
-              const button = createNode({
-                tagName: "button",
-                className: episodeNumber2.as((_episodeNumber) => _episodeNumber === number && "active"),
-                children: [number],
-                onclick: () => {
-                  episodeNumber2.ref.value = number;
-                }
-              });
-              if (scrollToEpisode) {
-                buttonsElements[number] = button;
-              }
-              return button;
-            })
-          },
-          {
-            tagName: "button",
-            className: next.as((next2) => next2 === null && "disabled" || null),
-            children: ["next ", ArrowRight],
-            onclick: next.as((next2) => next2 !== null && (() => {
-              episodeNumber2.ref.value = next2;
-            }))
-          }
-        ]
-      }
-    ]
-  };
-}
-var EpisodeDetailsLoading = {
-  tagName: "div",
-  className: "episode-header loading",
-  children: [
-    {
-      tagName: "div",
-      className: "data",
-      children: [
-        {
-          tagName: "div",
-          className: "image",
-          style: {
-            animationDelay: randomDelay()
-          }
-        },
-        {
-          tagName: "div",
-          className: "info",
-          style: {
-            animationDelay: randomDelay()
-          }
-        }
-      ]
-    },
-    {
-      tagName: "div",
-      className: "episode-controls",
-      children: [
-        {
-          tagName: "button",
-          style: {
-            animationDelay: randomDelay()
-          },
-          children: [ArrowLeft, " prev"]
-        },
-        {
-          tagName: "div",
-          className: "episode-list center",
-          children: new Array(7).fill(null).map((_, i) => ({
-            tagName: "button",
-            children: [i]
-          }))
-        },
-        {
-          tagName: "button",
-          style: {
-            animationDelay: randomDelay()
-          },
-          children: ["next ", ArrowRight]
-        }
-      ]
-    }
-  ]
-};
-
-// src/components/episode.player.ts
-function EpisodePlayer(_episode) {
-  const lastServer = localStorage.getItem(LSK_SERVER);
-  const src = new State(_episode.links.find((item) => item.server === lastServer)?.href || _episode.links[0].href);
-  const iframe = createNode({
-    tagName: "iframe",
-    className: "player-iframe",
-    src
-  });
-  iframe.setAttribute("allowfullscreen", "true");
-  iframe.setAttribute("frameborder", "0");
-  iframe.setAttribute("marginwidth", "0");
-  iframe.setAttribute("marginheight", "0");
-  iframe.setAttribute("scrolling", "no");
-  return {
-    tagName: "div",
-    className: "player",
-    children: [
-      iframe,
-      {
-        tagName: "div",
-        className: "player-server-list",
-        children: [
-          {
-            tagName: "small",
-            children: ["servers"]
-          },
-          ..._episode.links.map((item) => ({
-            tagName: "button",
-            className: src.as((src2) => src2 === item.href && "active"),
-            children: [item.server],
-            onclick: () => {
-              src.value = item.href;
-              localStorage.setItem(LSK_SERVER, item.server);
-            }
-          }))
-        ]
-      }
-    ]
-  };
-}
-var LSK_SERVER = "server";
-var EpisodePlayerLoading = {
-  tagName: "div",
-  className: "player loading",
-  children: [
-    {
-      tagName: "div",
-      className: "player-iframe"
-    },
-    {
-      tagName: "div",
-      className: "player-server-list",
-      children: [
-        {
-          tagName: "small",
-          children: ["servers"]
-        },
-        {
-          tagName: "button",
-          children: ["vidcdn"]
-        },
-        {
-          tagName: "button",
-          children: ["streamwish"]
-        },
-        {
-          tagName: "button",
-          children: ["hydrax"]
-        },
-        {
-          tagName: "button",
-          children: ["mp4upload"]
-        }
-      ]
-    }
-  ]
-};
-
 // src/lib/state.ref.ts
 class StateRef {
   ref;
@@ -968,39 +608,27 @@ class StateRef {
   }
 }
 
-// src/components/episode.ts
-var statusfulRef = new StateRef(statusful2);
-var episodeNumberRef = new StateRef(episodeNumber);
-var Episode = [
-  details.as((_details) => {
-    statusfulRef.clear();
-    episodeNumberRef.clear();
-    return _details ? EpisodeDetails(_details, statusfulRef, episodeNumberRef) : EpisodeDetailsLoading;
-  }),
-  episode2.as((_episode) => _episode === -1 ? null : _episode ? EpisodePlayer(_episode) : EpisodePlayerLoading)
-];
-
-// src/components/footer.ts
-var Footer = {
-  tagName: "footer",
-  children: [
-    {
-      tagName: "small",
-      children: [
-        "This is an alternative client for ",
-        {
-          tagName: "a",
-          href: GOGO_URL,
-          children: ["gogoanime"]
-        }
-      ]
+// src/util.ts
+function randomDelay() {
+  return (Math.random() * 300).toFixed(0) + "ms";
+}
+function debounce(f, ms) {
+  let timeout = null;
+  return function(...args) {
+    if (timeout) {
+      clearTimeout(timeout);
     }
-  ]
-};
+    timeout = setTimeout(() => {
+      f(...args);
+      timeout = null;
+    }, ms);
+  };
+}
+var isMobile = matchMedia("(max-width: 768px)").matches;
 
-// src/components/search.result.ts
-function SearchResult(result, statusful5) {
-  const status = statusful5.as((statusful6) => statusful6.find((s) => s.urlTitle === result.urlTitle)?.status);
+// src/components/search.result.tsx
+function SearchResult(result, statusful4) {
+  const status = statusful4.as((statusful5) => statusful5.find((s) => s.urlTitle === result.urlTitle)?.status);
   let fetched = false;
   let tId = null;
   const prefetch = () => {
@@ -1025,8 +653,7 @@ function SearchResult(result, statusful5) {
     urlTitle.value = result.urlTitle;
     search.value = null;
   };
-  return {
-    tagName: "div",
+  return jsx("div", {
     tabIndex: 0,
     className: status.as((status2) => status2 === Status.Watching ? "search-result watching" : "search-result"),
     onmouseenter: prefetch,
@@ -1038,31 +665,38 @@ function SearchResult(result, statusful5) {
       e.key === "Enter" && onclick();
     },
     children: [
-      {
-        tagName: "div",
+      jsx("div", {
         className: "image",
         style: {
           backgroundImage: "url(" + encodeURI(result.image) + ")"
         },
-        children: [
-          {
-            tagName: "div",
-            className: "status-bar"
-          }
-        ]
-      },
-      {
-        tagName: "p",
-        children: [result.title]
-      }
+        children: jsx("div", {
+          className: "status-bar"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      jsx("p", {
+        children: result.title
+      }, undefined, false, undefined, this)
     ]
-  };
+  }, undefined, true, undefined, this);
 }
 
-// src/components/search.ts
-var statusfulRef2 = new StateRef(statusful2);
-var SearchInput = createNode({
-  tagName: "input",
+// node_modules/@9elt/mini-transpiler/jsx-dev-runtime.js
+var jsx = function(tagName, props) {
+  props ||= {};
+  if (props.children) {
+    props.children = props.children instanceof State ? props.children : Array.isArray(props.children) ? props.children.flat() : [props.children];
+  }
+  if (typeof tagName === "function") {
+    return tagName(props);
+  }
+  props.tagName = tagName;
+  return props;
+};
+
+// src/components/search.tsx
+var statusfulRef = new StateRef(statusful2);
+var SearchInput = createNode(jsx("input", {
   className: "search-input",
   type: "text",
   placeholder: isMobile ? "Search" : "Type '/' to search",
@@ -1070,45 +704,38 @@ var SearchInput = createNode({
   oninput: debounce((e) => {
     search.value = e.target.value.trim() || null;
   }, 1000)
-});
-var Search = createNode({
-  tagName: "div",
+}, undefined, false, undefined, this));
+var Search = createNode(jsx("div", {
   className: "search-container",
   children: [
-    {
-      tagName: "div",
+    jsx("div", {
       className: "search-input-container",
       children: [
         SearchInput,
-        search.as((_search) => _search !== null && {
-          tagName: "span",
+        search.as((_search) => _search !== null && jsx("span", {
           className: "search-input-adornment",
-          children: ["\u2715"],
           onclick: () => {
             if (search.value !== null) {
               search.value = null;
             }
-          }
-        })
+          },
+          children: "\u2715"
+        }, undefined, false, undefined, this))
       ]
-    },
+    }, undefined, true, undefined, this),
     results.as((results2) => {
-      statusfulRef2.clear();
-      return results2 && {
-        tagName: "div",
+      statusfulRef.clear();
+      return results2 && jsx("div", {
         tabIndex: -1,
         className: "search-results",
-        children: results2.length === 0 ? [
-          {
-            tagName: "p",
-            className: "no-search-results",
-            children: ["no results"]
-          }
-        ] : results2.map((result) => SearchResult(result, statusfulRef2))
-      };
+        children: results2.length === 0 ? jsx("p", {
+          className: "no-search-results",
+          children: "no results"
+        }, undefined, false, undefined, this) : results2.map((result) => SearchResult(result, statusfulRef))
+      }, undefined, false, undefined, this);
     })
   ]
-});
+}, undefined, true, undefined, this));
 window.addEventListener("keydown", (e) => {
   if (document.activeElement?.tagName !== "INPUT" && e.key === "/") {
     e.preventDefault();
@@ -1126,65 +753,314 @@ window.addEventListener("click", (e) => {
   }
 });
 
-// src/components/logo.ts
-var Logo = {
-  tagName: "svg",
+// src/components/arrow.left.tsx
+var ArrowLeft = jsx("svg", {
   namespaceURI: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 304 90",
-  children: [
-    {
-      tagName: "path",
-      namespaceURI: "http://www.w3.org/2000/svg",
-      d: "M48.1689 13.0291C47.5022 8.86247 47.6689 0.429137 53.6689 0.0291371C61.1689 -0.470863 62.6689 5.52914 62.1689 13.0291C61.6689 20.5291 60.1689 26.5291 55.1689 26.5291C53.5509 26.5291 52.487 25.9888 51.4901 25.4826C49.4062 24.4243 47.6151 23.5147 41.6689 28C30.4002 36.5 7.1134 66.5981 17.6689 75.0291C28.9002 84 55.1689 84.5 56.1689 76.5291C57.5396 65.6034 47.1689 68.0291 41.6689 71.5291C36.1689 75.0291 32.1689 77.0291 34.6689 71.5291C37.1689 66.0291 45.1689 54.0291 52.6689 55.0291C60.1689 56.0291 64.1689 65.0291 63.1689 76.5291C62.1689 88.0291 59.1689 89.5291 49.6689 89.0291C40.1689 88.5291 20.1689 87.5291 9.16888 89.0291C-1.83112 90.5291 -1.05702 77.7301 1.90022 70C9.16888 51 25.6689 25.0291 48.1689 13.0291Z"
-    },
-    {
-      tagName: "path",
-      namespaceURI: "http://www.w3.org/2000/svg",
-      "fill-rule": "evenodd",
-      "clip-rule": "evenodd",
-      d: "M109.9 2.5C106.4 2.5 97.5002 5.1 89.9002 15.5C80.4002 28.5 63.9002 62.5 73.9002 78.5C79.1002 86.1 90.0669 88.3333 94.9002 88.5H124.4C128.067 88.5 136.8 87.2 142.4 82C158.016 67.5 139.4 30 129.9 15.5C122.3 3.9 113.4 2 109.9 2.5ZM109.814 13C104.314 13 93.8142 29 89.3142 38C84.8142 47 75.8142 74 90.3142 75.5C104.814 77 120.927 77.9517 129.814 75.5C144.314 71.5 135.356 49 130.314 38C124.814 26 115.314 13 109.814 13Z"
-    },
-    {
-      tagName: "path",
-      namespaceURI: "http://www.w3.org/2000/svg",
-      d: "M203.169 13.0291C202.502 8.86247 202.669 0.429137 208.669 0.0291371C216.169 -0.470863 217.669 5.52914 217.169 13.0291C216.669 20.5291 215.169 26.5291 210.169 26.5291C208.551 26.5291 207.487 25.9888 206.49 25.4826C204.406 24.4243 202.615 23.5147 196.669 28C185.4 36.5 162.113 66.5981 172.669 75.0291C183.9 84 210.169 84.5 211.169 76.5291C212.54 65.6034 202.169 68.0291 196.669 71.5291C191.169 75.0291 187.169 77.0291 189.669 71.5291C192.169 66.0291 200.169 54.0291 207.669 55.0291C215.169 56.0291 219.169 65.0291 218.169 76.5291C217.169 88.0291 214.169 89.5291 204.669 89.0291C195.169 88.5291 175.169 87.5291 164.169 89.0291C153.169 90.5291 153.943 77.7301 156.9 70C164.169 51 180.669 25.0291 203.169 13.0291Z"
-    },
-    {
-      tagName: "path",
-      namespaceURI: "http://www.w3.org/2000/svg",
-      "fill-rule": "evenodd",
-      "clip-rule": "evenodd",
-      d: "M264.9 2.5C261.4 2.5 252.5 5.1 244.9 15.5C235.4 28.5 218.9 62.5 228.9 78.5C234.1 86.1 245.067 88.3333 249.9 88.5H279.4C283.067 88.5 291.8 87.2 297.4 82C313.016 67.5 294.4 30 284.9 15.5C277.3 3.9 268.4 2 264.9 2.5ZM264.814 13C259.314 13 248.814 29 244.314 38C239.814 47 230.814 74 245.314 75.5C259.814 77 275.927 77.9517 284.814 75.5C299.314 71.5 290.356 49 285.314 38C279.814 26 270.314 13 264.814 13Z"
-    }
-  ]
-};
+  viewBox: "0 0 24 24",
+  style: {
+    width: "24px",
+    height: "24px"
+  },
+  children: jsx("path", {
+    namespaceURI: "http://www.w3.org/2000/svg",
+    d: "M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"
+  }, undefined, false, undefined, this)
+}, undefined, false, undefined, this);
 
-// src/components/header.ts
-var Header = {
-  tagName: "header",
-  children: [
-    {
-      tagName: "div",
-      children: [
-        {
-          tagName: "button",
-          className: "logo",
-          children: [Logo],
-          onclick: () => {
-            if (route.value !== Route.Home) {
-              urlTitle.value = null;
-              episodeNumber.value = null;
-            }
-          }
+// src/components/arrow.right.tsx
+var ArrowRight = jsx("svg", {
+  namespaceURI: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 24 24",
+  style: {
+    width: "24px",
+    height: "24px"
+  },
+  children: jsx("path", {
+    namespaceURI: "http://www.w3.org/2000/svg",
+    d: "M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
+  }, undefined, false, undefined, this)
+}, undefined, false, undefined, this);
+
+// src/components/expandable.text.tsx
+function ExpandableText({
+  text,
+  limit
+}) {
+  if (text.length <= limit) {
+    return jsx("span", {
+      children: text
+    }, undefined, false, undefined, this);
+  }
+  const isOpen = new State(false);
+  const onclick = () => {
+    isOpen.value = !isOpen.value;
+  };
+  return jsx("span", {
+    children: [
+      isOpen.as((isOpen2) => isOpen2 ? text : text.slice(0, limit)),
+      jsx("small", {
+        style: {
+          color: "#666",
+          cursor: "pointer"
         },
-        Search
-      ]
-    }
-  ]
-};
+        tabIndex: 0,
+        onclick,
+        onkeydown: (e) => {
+          e.key === "Enter" && onclick();
+        },
+        children: isOpen.as((isOpen2) => isOpen2 ? " close" : "...")
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+}
 
-// src/components/card.ts
-function Card(entry, statusful6) {
+// src/components/episode.details.tsx
+function EpisodeDetails(_details, _statusful, episodeNumber2) {
+  const status = _statusful.as((_statusful2) => _statusful2.find((s) => s.urlTitle === _details.urlTitle)?.status);
+  const next = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) - 1] || null);
+  const previous = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) + 1] || null);
+  const scrollToEpisode = _details.episodes.length > 25;
+  const buttonsElements = {};
+  if (scrollToEpisode) {
+    episodeNumber2.sub((episodeNumber3) => episodeNumber3 !== null && buttonsElements[episodeNumber3]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest"
+    }));
+  }
+  return jsx("div", {
+    className: status.as((status2) => status2 === Status.Watching ? "episode-header watching" : "episode-header"),
+    children: [
+      jsx("div", {
+        className: "data",
+        children: [
+          jsx("div", {
+            className: "image",
+            style: {
+              backgroundImage: "url(" + encodeURI(_details.image) + ")"
+            },
+            children: jsx("div", {
+              className: "status-bar"
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this),
+          jsx("div", {
+            className: "info",
+            children: [
+              jsx("button", {
+                onclick: status.as((status2) => () => {
+                  status2 === Status.Watching ? statusful2.remove(_details) : statusful2.add(_details, Status.Watching);
+                }),
+                children: status.as((status2) => status2 === Status.Watching ? "\u2715 Remove from watchlist" : "\u2605 Add to watchlist")
+              }, undefined, false, undefined, this),
+              jsx("h2", {
+                children: status.as((status2) => status2 === Status.Watching ? "\u2605 " + _details.title : _details.title)
+              }, undefined, false, undefined, this),
+              (_details.release || _details.status) && jsx("small", {
+                children: [
+                  _details.release || null,
+                  _details.status && _details.release && " \u2022 " || null,
+                  _details.status || null
+                ]
+              }, undefined, true, undefined, this),
+              _details.genres && jsx("p", {
+                className: "genres",
+                children: _details.genres.map((genre) => jsx("span", {
+                  children: [genre]
+                }, undefined, false, undefined, this))
+              }, undefined, false, undefined, this),
+              jsx("p", {
+                className: "description",
+                children: jsx(ExpandableText, {
+                  text: _details.description,
+                  limit: 200
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this),
+              _details.alias && jsx("p", {
+                className: "aliases",
+                children: [
+                  jsx("small", {
+                    children: "a.k.a. "
+                  }, undefined, false, undefined, this),
+                  jsx("i", {
+                    children: _details.alias.join(" \u2022 ")
+                  }, undefined, false, undefined, this)
+                ]
+              }, undefined, true, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      _details.episodes.length > 0 && jsx("div", {
+        className: "episode-controls",
+        children: [
+          jsx("button", {
+            className: previous.as((previous2) => previous2 === null && "disabled" || null),
+            onclick: previous.as((previous2) => previous2 !== null && (() => {
+              episodeNumber2.ref.value = previous2;
+            })),
+            children: [
+              ArrowLeft,
+              " prev"
+            ]
+          }, undefined, true, undefined, this),
+          jsx("div", {
+            className: _details.episodes.length < (isMobile ? 10 : 19) ? "episode-list center" : _details.episodes.length < 100 ? "episode-list" : _details.episodes.length < 200 ? "episode-list s" : "episode-list xs",
+            children: _details.episodes.map((number) => {
+              const button = createNode(jsx("button", {
+                className: episodeNumber2.as((_episodeNumber) => _episodeNumber === number && "active"),
+                onclick: () => {
+                  episodeNumber2.ref.value = number;
+                },
+                children: number
+              }, undefined, false, undefined, this));
+              if (scrollToEpisode) {
+                buttonsElements[number] = button;
+              }
+              return button;
+            })
+          }, undefined, false, undefined, this),
+          jsx("button", {
+            className: next.as((next2) => next2 === null && "disabled" || null),
+            onclick: next.as((next2) => next2 !== null && (() => {
+              episodeNumber2.ref.value = next2;
+            })),
+            children: [
+              "next ",
+              ArrowRight
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+}
+var EpisodeDetailsLoading = jsx("div", {
+  className: "episode-header loading",
+  children: [
+    jsx("div", {
+      className: "data",
+      children: [
+        jsx("div", {
+          className: "image",
+          style: { animationDelay: randomDelay() }
+        }, undefined, false, undefined, this),
+        jsx("div", {
+          className: "info",
+          style: { animationDelay: randomDelay() }
+        }, undefined, false, undefined, this)
+      ]
+    }, undefined, true, undefined, this),
+    jsx("div", {
+      className: "episode-controls",
+      children: [
+        jsx("button", {
+          style: { animationDelay: randomDelay() },
+          children: [
+            ArrowLeft,
+            " prev"
+          ]
+        }, undefined, true, undefined, this),
+        jsx("div", {
+          className: "episode-list center",
+          children: new Array(7).fill(null).map((_, i) => jsx("button", {
+            children: i
+          }, undefined, false, undefined, this))
+        }, undefined, false, undefined, this),
+        jsx("button", {
+          style: { animationDelay: randomDelay() },
+          children: [
+            "next ",
+            ArrowRight
+          ]
+        }, undefined, true, undefined, this)
+      ]
+    }, undefined, true, undefined, this)
+  ]
+}, undefined, true, undefined, this);
+
+// src/components/episode.player.tsx
+function EpisodePlayer(_episode) {
+  const lastServer = localStorage.getItem(LSK_SERVER);
+  const src = new State(_episode.links.find((item) => item.server === lastServer)?.href || _episode.links[0].href);
+  const iframe = createNode(jsx("iframe", {
+    className: "player-iframe",
+    src
+  }, undefined, false, undefined, this));
+  iframe.setAttribute("allowfullscreen", "true");
+  iframe.setAttribute("frameborder", "0");
+  iframe.setAttribute("marginwidth", "0");
+  iframe.setAttribute("marginheight", "0");
+  iframe.setAttribute("scrolling", "no");
+  return jsx("div", {
+    className: "player",
+    children: [
+      iframe,
+      jsx("div", {
+        className: "player-server-list",
+        children: [
+          jsx("small", {
+            children: "servers"
+          }, undefined, false, undefined, this),
+          _episode.links.map((item) => jsx("button", {
+            className: src.as((src2) => src2 === item.href && "active"),
+            onclick: () => {
+              src.value = item.href;
+              localStorage.setItem(LSK_SERVER, item.server);
+            },
+            children: item.server
+          }, undefined, false, undefined, this))
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+}
+var LSK_SERVER = "server";
+var EpisodePlayerLoading = jsx("div", {
+  className: "player loading",
+  children: [
+    jsx("div", {
+      className: "player-iframe"
+    }, undefined, false, undefined, this),
+    jsx("div", {
+      className: "player-server-list",
+      children: [
+        jsx("small", {
+          children: "servers"
+        }, undefined, false, undefined, this),
+        jsx("button", {
+          children: "vidcdn"
+        }, undefined, false, undefined, this),
+        jsx("button", {
+          children: "streamwish"
+        }, undefined, false, undefined, this),
+        jsx("button", {
+          children: "hydrax"
+        }, undefined, false, undefined, this),
+        jsx("button", {
+          children: "mp4upload"
+        }, undefined, false, undefined, this)
+      ]
+    }, undefined, true, undefined, this)
+  ]
+}, undefined, true, undefined, this);
+
+// src/components/episode.tsx
+var statusfulRef2 = new StateRef(statusful2);
+var episodeNumberRef = new StateRef(episodeNumber);
+var Episode = [
+  details.as((_details) => {
+    statusfulRef2.clear();
+    episodeNumberRef.clear();
+    return _details ? EpisodeDetails(_details, statusfulRef2, episodeNumberRef) : EpisodeDetailsLoading;
+  }),
+  episode2.as((_episode) => _episode === -1 ? null : _episode ? EpisodePlayer(_episode) : EpisodePlayerLoading)
+];
+
+// src/components/card.tsx
+function Card({
+  entry,
+  statusful: statusful6
+}) {
   const status = statusful6.as((_statusful) => _statusful.find((s) => s.urlTitle === entry.urlTitle)?.status);
   let fetched = false;
   let tId = null;
@@ -1211,8 +1087,7 @@ function Card(entry, statusful6) {
       episodeNumber.value = entry.episode;
     }
   };
-  return {
-    tagName: "div",
+  return jsx("div", {
     tabIndex: 0,
     className: status.as((status2) => status2 === Status.Watching ? "card watching" : "card"),
     onmouseenter: prefetch,
@@ -1224,65 +1099,40 @@ function Card(entry, statusful6) {
       e.key === "Enter" && onclick();
     },
     children: [
-      {
-        tagName: "div",
+      jsx("div", {
         className: "image",
         style: {
           backgroundImage: entry.image && "url(" + encodeURI(entry.image) + ")"
         }
-      },
-      {
-        tagName: "p",
-        children: [entry.title]
-      },
-      entry.episode !== undefined && {
-        tagName: "small",
-        children: ["ep ", entry.episode]
-      },
-      status.as((status2) => status2 === Status.Watching && {
-        tagName: "div",
-        className: "status",
+      }, undefined, false, undefined, this),
+      jsx("p", {
+        children: entry.title
+      }, undefined, false, undefined, this),
+      entry.episode !== undefined && jsx("small", {
         children: [
-          {
-            tagName: "span",
-            children: ["\u2605"]
-          }
+          "ep ",
+          entry.episode
         ]
-      }),
-      {
-        tagName: "div",
+      }, undefined, true, undefined, this),
+      status.as((status2) => status2 === Status.Watching && jsx("div", {
+        className: "status",
+        children: jsx("span", {
+          children: "\u2605"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this)),
+      jsx("div", {
         className: "status-bar"
-      }
+      }, undefined, false, undefined, this)
     ]
-  };
+  }, undefined, true, undefined, this);
 }
 
-// src/components/list.footer.ts
-function ListFooter(Pagination) {
-  return {
-    tagName: "div",
-    className: "list-footer",
-    children: [Pagination]
-  };
-}
-
-// src/components/list.header.ts
-function ListHeader(Title, Pagination) {
-  return {
-    tagName: "div",
-    className: "list-header",
-    children: [
-      {
-        tagName: "h3",
-        children: [Title]
-      },
-      Pagination
-    ]
-  };
-}
-
-// src/components/list.pagination.ts
-function ListPagination(page, max, onclick) {
+// src/components/list.pagination.tsx
+function ListPagination({
+  page,
+  max,
+  onclick
+}) {
   if (page === null) {
     return 0;
   }
@@ -1298,103 +1148,187 @@ function ListPagination(page, max, onclick) {
   for (let i = 0;i < values.length; i++) {
     values[i] = start + i;
   }
-  return {
-    tagName: "div",
+  return jsx("div", {
     className: "list-pagination",
-    children: values.map((value) => ({
-      tagName: "button",
-      children: [value],
+    children: values.map((value) => jsx("button", {
+      children: value,
       disabled: value === page,
       className: value === page && "active",
       onclick: () => {
         onclick(value);
       }
-    }))
-  };
+    }, undefined, false, undefined, this))
+  }, undefined, false, undefined, this);
 }
 
-// src/components/releases.list.ts
+// src/components/releases.list.tsx
 function ReleasesList(_releases) {
   statusfulRef3.clear();
-  return {
-    tagName: "div",
+  return jsx("div", {
     className: "releases-list",
     children: [
-      ListHeader("Recent Releases", ReleasesPagination),
-      {
-        tagName: "div",
+      jsx("div", {
+        className: "list-header",
+        children: [
+          jsx("h3", {
+            children: "Recent Releases"
+          }, undefined, false, undefined, this),
+          ReleasesPagination
+        ]
+      }, undefined, true, undefined, this),
+      jsx("div", {
         className: "card-list",
-        children: _releases.map((_entry) => Card(_entry, statusfulRef3))
-      },
-      ListFooter(ReleasesPagination)
+        children: _releases.map((_entry) => jsx(Card, {
+          entry: _entry,
+          statusful: statusfulRef3
+        }, undefined, false, undefined, this))
+      }, undefined, false, undefined, this),
+      jsx("div", {
+        className: "list-footer",
+        children: ReleasesPagination
+      }, undefined, false, undefined, this)
     ]
-  };
+  }, undefined, true, undefined, this);
 }
 var statusfulRef3 = new StateRef(statusful2);
-var ReleasesPagination = releasesPage.as((_page) => ListPagination(_page, 99, (page) => {
-  releasesPage.value = page;
-}));
-var LoadingPagination = ListPagination(1, 6, () => {
-});
-var ReleasesLoading = {
-  tagName: "div",
+var ReleasesPagination = releasesPage.as((_page) => jsx(ListPagination, {
+  page: _page,
+  max: 99,
+  onclick: (page) => {
+    releasesPage.value = page;
+  }
+}, undefined, false, undefined, this));
+var LoadingPagination = jsx(ListPagination, {
+  page: 1,
+  max: 6,
+  onclick: () => {
+  }
+}, undefined, false, undefined, this);
+var ReleasesLoading = jsx("div", {
   className: "loading",
   children: [
-    ListHeader("Recent Releases", LoadingPagination),
-    {
-      tagName: "div",
+    jsx("div", {
+      className: "list-header",
+      children: [
+        jsx("h3", {
+          children: "Recent Releases"
+        }, undefined, false, undefined, this),
+        LoadingPagination
+      ]
+    }, undefined, true, undefined, this),
+    jsx("div", {
       className: "card-list",
-      children: new Array(8).fill(0).map(() => ({
-        tagName: "div",
+      children: new Array(8).fill(0).map(() => jsx("div", {
         className: "card loading",
         style: {
           animationDelay: randomDelay()
         }
-      }))
-    },
-    ListFooter(LoadingPagination)
+      }, undefined, false, undefined, this))
+    }, undefined, false, undefined, this),
+    jsx("div", {
+      className: "list-footer",
+      children: LoadingPagination
+    }, undefined, false, undefined, this)
   ]
-};
+}, undefined, true, undefined, this);
 
-// src/components/watching.list.ts
+// src/components/watching.list.tsx
 function WatchingList(_watching) {
   statusfulRef4.clear();
-  return {
-    tagName: "div",
+  return jsx("div", {
     className: "watching-list",
     children: [
-      ListHeader("Your Watchlist", WatchingPagination),
-      {
-        tagName: "div",
+      jsx("div", {
+        className: "list-header",
+        children: [
+          jsx("h3", {
+            children: "Your Watchlist"
+          }, undefined, false, undefined, this),
+          WatchingPagination
+        ]
+      }, undefined, true, undefined, this),
+      jsx("div", {
         className: "card-list",
-        children: _watching.data.map((_entry) => Card(_entry, statusfulRef4))
-      },
-      ListFooter(WatchingPagination)
+        children: _watching.data.map((_entry) => jsx(Card, {
+          entry: _entry,
+          statusful: statusfulRef4
+        }, undefined, false, undefined, this))
+      }, undefined, false, undefined, this),
+      jsx("div", {
+        className: "list-footer",
+        children: WatchingPagination
+      }, undefined, false, undefined, this)
     ]
-  };
+  }, undefined, true, undefined, this);
 }
 var statusfulRef4 = new StateRef(statusful2);
 var WatchingPagination = State.use({
   watchingPage,
   watching
-}).as((g) => ListPagination(g.watchingPage, g.watching.maxPage, (page) => {
-  watchingPage.value = page;
-}));
+}).as((g) => jsx(ListPagination, {
+  page: g.watchingPage,
+  max: g.watching.maxPage,
+  onclick: (page) => {
+    watchingPage.value = page;
+  }
+}, undefined, false, undefined, this));
 
-// src/components/home.ts
+// src/components/home.tsx
 var Home = [
   watching.as((watching3) => watching3.data.length > 0 && WatchingList(watching3)),
   releases.as((_releases) => _releases ? ReleasesList(_releases) : ReleasesLoading)
 ];
 
-// src/components/root.ts
-var Root = {
-  tagName: "div",
+// src/components/logo.tsx
+var Logo = jsx("svg", {
+  namespaceURI: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 304 90",
+  children: [
+    jsx("path", {
+      namespaceURI: "http://www.w3.org/2000/svg",
+      d: "M48.1689 13.0291C47.5022 8.86247 47.6689 0.429137 53.6689 0.0291371C61.1689 -0.470863 62.6689 5.52914 62.1689 13.0291C61.6689 20.5291 60.1689 26.5291 55.1689 26.5291C53.5509 26.5291 52.487 25.9888 51.4901 25.4826C49.4062 24.4243 47.6151 23.5147 41.6689 28C30.4002 36.5 7.1134 66.5981 17.6689 75.0291C28.9002 84 55.1689 84.5 56.1689 76.5291C57.5396 65.6034 47.1689 68.0291 41.6689 71.5291C36.1689 75.0291 32.1689 77.0291 34.6689 71.5291C37.1689 66.0291 45.1689 54.0291 52.6689 55.0291C60.1689 56.0291 64.1689 65.0291 63.1689 76.5291C62.1689 88.0291 59.1689 89.5291 49.6689 89.0291C40.1689 88.5291 20.1689 87.5291 9.16888 89.0291C-1.83112 90.5291 -1.05702 77.7301 1.90022 70C9.16888 51 25.6689 25.0291 48.1689 13.0291Z"
+    }, undefined, false, undefined, this),
+    jsx("path", {
+      namespaceURI: "http://www.w3.org/2000/svg",
+      "fill-rule": "evenodd",
+      "clip-rule": "evenodd",
+      d: "M109.9 2.5C106.4 2.5 97.5002 5.1 89.9002 15.5C80.4002 28.5 63.9002 62.5 73.9002 78.5C79.1002 86.1 90.0669 88.3333 94.9002 88.5H124.4C128.067 88.5 136.8 87.2 142.4 82C158.016 67.5 139.4 30 129.9 15.5C122.3 3.9 113.4 2 109.9 2.5ZM109.814 13C104.314 13 93.8142 29 89.3142 38C84.8142 47 75.8142 74 90.3142 75.5C104.814 77 120.927 77.9517 129.814 75.5C144.314 71.5 135.356 49 130.314 38C124.814 26 115.314 13 109.814 13Z"
+    }, undefined, false, undefined, this),
+    jsx("path", {
+      namespaceURI: "http://www.w3.org/2000/svg",
+      d: "M203.169 13.0291C202.502 8.86247 202.669 0.429137 208.669 0.0291371C216.169 -0.470863 217.669 5.52914 217.169 13.0291C216.669 20.5291 215.169 26.5291 210.169 26.5291C208.551 26.5291 207.487 25.9888 206.49 25.4826C204.406 24.4243 202.615 23.5147 196.669 28C185.4 36.5 162.113 66.5981 172.669 75.0291C183.9 84 210.169 84.5 211.169 76.5291C212.54 65.6034 202.169 68.0291 196.669 71.5291C191.169 75.0291 187.169 77.0291 189.669 71.5291C192.169 66.0291 200.169 54.0291 207.669 55.0291C215.169 56.0291 219.169 65.0291 218.169 76.5291C217.169 88.0291 214.169 89.5291 204.669 89.0291C195.169 88.5291 175.169 87.5291 164.169 89.0291C153.169 90.5291 153.943 77.7301 156.9 70C164.169 51 180.669 25.0291 203.169 13.0291Z"
+    }, undefined, false, undefined, this),
+    jsx("path", {
+      namespaceURI: "http://www.w3.org/2000/svg",
+      "fill-rule": "evenodd",
+      "clip-rule": "evenodd",
+      d: "M264.9 2.5C261.4 2.5 252.5 5.1 244.9 15.5C235.4 28.5 218.9 62.5 228.9 78.5C234.1 86.1 245.067 88.3333 249.9 88.5H279.4C283.067 88.5 291.8 87.2 297.4 82C313.016 67.5 294.4 30 284.9 15.5C277.3 3.9 268.4 2 264.9 2.5ZM264.814 13C259.314 13 248.814 29 244.314 38C239.814 47 230.814 74 245.314 75.5C259.814 77 275.927 77.9517 284.814 75.5C299.314 71.5 290.356 49 285.314 38C279.814 26 270.314 13 264.814 13Z"
+    }, undefined, false, undefined, this)
+  ]
+}, undefined, true, undefined, this);
+
+// src/components/root.tsx
+var Root = jsx("div", {
   id: "root",
   children: [
-    Header,
-    {
-      tagName: "main",
+    jsx("header", {
+      children: jsx("div", {
+        children: [
+          jsx("button", {
+            className: "logo",
+            onclick: () => {
+              if (route.value !== Route.Home) {
+                urlTitle.value = null;
+                episodeNumber.value = null;
+              }
+            },
+            children: Logo
+          }, undefined, false, undefined, this),
+          Search
+        ]
+      }, undefined, true, undefined, this)
+    }, undefined, false, undefined, this),
+    jsx("main", {
       children: route.as((route2) => {
         route2 === Route.Episode && setTimeout(() => scrollTo({
           top: 0,
@@ -1402,10 +1336,21 @@ var Root = {
         }), 50);
         return route2 === Route.Home ? Home : Episode;
       })
-    },
-    Footer
+    }, undefined, false, undefined, this),
+    jsx("footer", {
+      children: jsx("small", {
+        children: [
+          "This is an alternative client for",
+          " ",
+          jsx("a", {
+            href: GOGO_URL,
+            children: "gogoanime"
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    }, undefined, false, undefined, this)
   ]
-};
+}, undefined, true, undefined, this);
 
 // src/index.ts
 document.body.appendChild(createNode(Root));

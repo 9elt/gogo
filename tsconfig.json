@@ -3,6 +3,8 @@
         "src/**/*"
     ],
     "compilerOptions": {
+        "jsx": "react-jsx",
+        "jsxImportSource": "@9elt/mini-transpiler",
         "target": "ES2020",
         "module": "commonjs",
         "outDir": "dist",
