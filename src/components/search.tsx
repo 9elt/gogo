@@ -47,9 +47,12 @@ export const Search = createNode(
                         {results.length === 0 ? (
                             <p className="no-search-results">no results</p>
                         ) : (
-                            results.map((result) =>
-                                SearchResult(result, statusfulRef)
-                            )
+                            results.map((result) => (
+                                <SearchResult
+                                    result={result}
+                                    statusful={statusfulRef}
+                                />
+                            ))
                         )}
                     </div>
                 )

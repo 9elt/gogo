@@ -4,10 +4,13 @@ import { getDetails, getDetailsCacheId, type SearchResult } from "../lib/gogo";
 import { StateRef } from "../lib/state.ref";
 import { Status, type Statusful } from "../lib/statusful";
 
-export function SearchResult(
-    result: SearchResult,
-    statusful: StateRef<Statusful[]>
-) {
+export function SearchResult({
+    result,
+    statusful,
+}: {
+    result: SearchResult;
+    statusful: StateRef<Statusful[]>;
+}) {
     const status = statusful.as(
         (statusful) =>
             statusful.find((s) => s.urlTitle === result.urlTitle)?.status

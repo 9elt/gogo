@@ -627,7 +627,10 @@ function debounce(f, ms) {
 var isMobile = matchMedia("(max-width: 768px)").matches;
 
 // src/components/search.result.tsx
-function SearchResult(result, statusful4) {
+function SearchResult({
+  result,
+  statusful: statusful4
+}) {
   const status = statusful4.as((statusful5) => statusful5.find((s) => s.urlTitle === result.urlTitle)?.status);
   let fetched = false;
   let tId = null;
@@ -731,7 +734,10 @@ var Search = createNode(jsx("div", {
         children: results2.length === 0 ? jsx("p", {
           className: "no-search-results",
           children: "no results"
-        }, undefined, false, undefined, this) : results2.map((result) => SearchResult(result, statusfulRef))
+        }, undefined, false, undefined, this) : results2.map((result) => jsx(SearchResult, {
+          result,
+          statusful: statusfulRef
+        }, undefined, false, undefined, this))
       }, undefined, false, undefined, this);
     })
   ]
