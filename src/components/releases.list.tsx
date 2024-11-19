@@ -1,4 +1,3 @@
-import { type MiniElement } from "@9elt/miniframe";
 import { releasesPage, statusful } from "../global";
 import type { Release } from "../lib/gogo";
 import { StateRef } from "../lib/state.ref";
@@ -18,7 +17,7 @@ const ReleasesPagination = releasesPage.as((_page) => (
     />
 ));
 
-export function ReleasesList(_releases: Release[]): MiniElement {
+export function ReleasesList(_releases: Release[]) {
     statusfulRef.clear();
 
     return (
@@ -38,10 +37,10 @@ export function ReleasesList(_releases: Release[]): MiniElement {
 }
 
 const LoadingPagination = (
-    <ListPagination page={1} max={6} onclick={() => {}} />
+    <ListPagination page={1} max={6} onclick={() => { }} />
 );
 
-export const ReleasesLoading: MiniElement = (
+export const ReleasesLoading = (
     <div className="loading">
         <div className="list-header">
             <h3>Recent Releases</h3>

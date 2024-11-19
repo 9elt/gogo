@@ -1,4 +1,4 @@
-import type { MiniElement } from "@9elt/miniframe";
+import { JSX } from "@9elt/miniframe/jsx-runtime";
 import {
     EpisodeDetails,
     EpisodeDetailsLoading,
@@ -13,7 +13,7 @@ import { StateRef } from "../lib/state.ref";
 const statusfulRef = new StateRef(statusful);
 const episodeNumberRef = new StateRef(episodeNumber);
 
-export const Episode: MiniElement[] = [
+export const Episode: JSX.Element[] = [
     // @ts-ignore
     details.as((_details) => {
         statusfulRef.clear();
@@ -28,7 +28,7 @@ export const Episode: MiniElement[] = [
         _episode === -1
             ? null
             : _episode
-              ? EpisodePlayer(_episode)
-              : EpisodePlayerLoading
+                ? EpisodePlayer(_episode)
+                : EpisodePlayerLoading
     ),
 ];

@@ -1,4 +1,3 @@
-import { type MiniElement } from "@9elt/miniframe";
 import { episodeNumber, urlTitle } from "../global";
 import { prefetcher } from "../lib/cache";
 import { getDetails, getDetailsCacheId } from "../lib/gogo";
@@ -16,7 +15,7 @@ export function Card({
         episode?: number;
     };
     statusful: StateRef<Statusful[]>;
-}): MiniElement {
+}) {
     const status = statusful.as(
         (_statusful) =>
             _statusful.find((s) => s.urlTitle === entry.urlTitle)?.status
@@ -56,7 +55,7 @@ export function Card({
         <div
             tabIndex={0}
             className={status.as((status) =>
-                status === Status.Watching ? "card watching" : "card"
+                status === Status.Watching ? "card watching" : "card" as string
             )}
             onmouseenter={prefetch}
             onmouseleave={cancel}

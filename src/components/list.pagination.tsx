@@ -8,7 +8,7 @@ export function ListPagination({
     onclick: (page: number) => void;
 }) {
     if (page === null) {
-        return 0;
+        return null;
     }
 
     const size = 6;
@@ -39,7 +39,7 @@ export function ListPagination({
                 <button
                     children={value}
                     disabled={value === page}
-                    className={value === page && "active"}
+                    className={value === page && "active" || undefined}
                     onclick={() => {
                         onclick(value);
                     }}

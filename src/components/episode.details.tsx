@@ -1,4 +1,4 @@
-import { createNode, type MiniElement } from "@9elt/miniframe";
+import { createNode } from "@9elt/miniframe";
 import { statusful } from "../global";
 import type { EpisodeDetails } from "../lib/gogo";
 import { StateRef } from "../lib/state.ref";
@@ -12,7 +12,7 @@ export function EpisodeDetails(
     _details: EpisodeDetails,
     _statusful: StateRef<Statusful[]>,
     episodeNumber: StateRef<number | null>
-): MiniElement {
+) {
     const status = _statusful.as(
         (_statusful) =>
             _statusful.find((s) => s.urlTitle === _details.urlTitle)?.status
@@ -21,14 +21,14 @@ export function EpisodeDetails(
     const next = episodeNumber.as(
         (episodeNumber) =>
             _details.episodes[
-                _details.episodes.indexOf(episodeNumber || 0) - 1
+            _details.episodes.indexOf(episodeNumber || 0) - 1
             ] || null
     );
 
     const previous = episodeNumber.as(
         (episodeNumber) =>
             _details.episodes[
-                _details.episodes.indexOf(episodeNumber || 0) + 1
+            _details.episodes.indexOf(episodeNumber || 0) + 1
             ] || null
     );
 
@@ -89,7 +89,7 @@ export function EpisodeDetails(
                                 : _details.title
                         )}
                     </h2>
-                    {(_details.release || _details.status) && (
+                    {(_details.release || _details.status || null) && (
                         <small>
                             {_details.release || null}
                             {(_details.status && _details.release && " • ") ||
@@ -140,10 +140,10 @@ export function EpisodeDetails(
                             _details.episodes.length < (isMobile ? 10 : 19)
                                 ? "episode-list center"
                                 : _details.episodes.length < 100
-                                  ? "episode-list"
-                                  : _details.episodes.length < 200
-                                    ? "episode-list s"
-                                    : "episode-list xs"
+                                    ? "episode-list"
+                                    : _details.episodes.length < 200
+                                        ? "episode-list s"
+                                        : "episode-list xs"
                         }
                     >
                         {_details.episodes.map((number) => {
@@ -152,7 +152,7 @@ export function EpisodeDetails(
                                     className={episodeNumber.as(
                                         (_episodeNumber) =>
                                             _episodeNumber === number &&
-                                            "active"
+                                            "active" || undefined
                                     )}
                                     onclick={() => {
                                         episodeNumber.ref.value = number;

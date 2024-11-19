@@ -1,6 +1,4 @@
-import type { MiniElement } from "@9elt/miniframe";
-
-export const Logo: MiniElement = (
+export const Logo = (
     <svg namespaceURI="http://www.w3.org/2000/svg" viewBox="0 0 304 90">
         <path
             namespaceURI="http://www.w3.org/2000/svg"
