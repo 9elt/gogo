@@ -37,7 +37,7 @@ export function ReleasesList(_releases: Release[]) {
 }
 
 const LoadingPagination = (
-    <ListPagination page={1} max={6} onclick={() => { }} />
+    <ListPagination page={1} max={6} onclick={() => {}} />
 );
 
 export const ReleasesLoading = (

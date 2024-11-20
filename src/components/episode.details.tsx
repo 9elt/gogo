@@ -8,7 +8,11 @@ import { ArrowLeft } from "./arrow.left";
 import { ArrowRight } from "./arrow.right";
 import { ExpandableText } from "./expandable.text";
 
-export function EpisodeDetails({ _details, _statusful, episodeNumber }: {
+export function EpisodeDetails({
+    _details,
+    _statusful,
+    episodeNumber,
+}: {
     _details: EpisodeDetails;
     _statusful: StateRef<Statusful[]>;
     episodeNumber: StateRef<number | null>;
@@ -21,14 +25,14 @@ export function EpisodeDetails({ _details, _statusful, episodeNumber }: {
     const next = episodeNumber.as(
         (episodeNumber) =>
             _details.episodes[
-            _details.episodes.indexOf(episodeNumber || 0) - 1
+                _details.episodes.indexOf(episodeNumber || 0) - 1
             ] || null
     );
 
     const previous = episodeNumber.as(
         (episodeNumber) =>
             _details.episodes[
-            _details.episodes.indexOf(episodeNumber || 0) + 1
+                _details.episodes.indexOf(episodeNumber || 0) + 1
             ] || null
     );
 
@@ -39,16 +43,14 @@ export function EpisodeDetails({ _details, _statusful, episodeNumber }: {
     } = {};
 
     if (scrollToEpisode) {
-        episodeNumber.sub(
-            (episodeNumber) => {
-                episodeNumber !== null &&
-                    buttonsElements[episodeNumber]?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "nearest",
-                        inline: "nearest",
-                    });
-            }
-        );
+        episodeNumber.sub((episodeNumber) => {
+            episodeNumber !== null &&
+                buttonsElements[episodeNumber]?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest",
+                });
+        });
     }
 
     return (
@@ -122,16 +124,15 @@ export function EpisodeDetails({ _details, _statusful, episodeNumber }: {
             {_details.episodes.length > 0 && (
                 <div className="episode-controls">
                     <button
-                        className={previous.as(
-                            (previous) =>
-                                (previous === null && "disabled") || ""
+                        className={previous.as((previous) =>
+                            previous === null ? "disabled" : undefined
                         )}
-                        onclick={previous.as(
-                            (previous) =>
-                                previous !== null &&
-                                (() => {
-                                    episodeNumber.ref.value = previous;
-                                }) || null
+                        onclick={previous.as((previous) =>
+                            previous === null
+                                ? undefined
+                                : () => {
+                                      episodeNumber.ref.value = previous;
+                                  }
                         )}
                     >
                         {ArrowLeft} prev
@@ -141,10 +142,10 @@ export function EpisodeDetails({ _details, _statusful, episodeNumber }: {
                             _details.episodes.length < (isMobile ? 10 : 19)
                                 ? "episode-list center"
                                 : _details.episodes.length < 100
-                                    ? "episode-list"
-                                    : _details.episodes.length < 200
-                                        ? "episode-list s"
-                                        : "episode-list xs"
+                                  ? "episode-list"
+                                  : _details.episodes.length < 200
+                                    ? "episode-list s"
+                                    : "episode-list xs"
                         }
                     >
                         {_details.episodes.map((number) => {
@@ -152,8 +153,9 @@ export function EpisodeDetails({ _details, _statusful, episodeNumber }: {
                                 <button
                                     className={episodeNumber.as(
                                         (_episodeNumber) =>
-                                            _episodeNumber === number &&
-                                            "active" || ""
+                                            (_episodeNumber === number &&
+                                                "active") ||
+                                            ""
                                     )}
                                     onclick={() => {
                                         episodeNumber.ref.value = number;
@@ -171,15 +173,15 @@ export function EpisodeDetails({ _details, _statusful, episodeNumber }: {
                         })}
                     </div>
                     <button
-                        className={next.as(
-                            (next) => (next === null && "disabled") || ""
+                        className={next.as((next) =>
+                            next === null ? "disabled" : undefined
                         )}
-                        onclick={next.as(
-                            (next) =>
-                                next !== null &&
-                                (() => {
-                                    episodeNumber.ref.value = next;
-                                }) || null
+                        onclick={next.as((next) =>
+                            next === null
+                                ? undefined
+                                : () => {
+                                      episodeNumber.ref.value = next;
+                                  }
                         )}
                     >
                         next {ArrowRight}

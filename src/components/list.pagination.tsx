@@ -39,7 +39,7 @@ export function ListPagination({
                 <button
                     children={value}
                     disabled={value === page}
-                    className={value === page && "active" || undefined}
+                    className={(value === page && "active") || undefined}
                     onclick={() => {
                         onclick(value);
                     }}

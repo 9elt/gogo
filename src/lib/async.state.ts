@@ -18,12 +18,11 @@ export class AsyncState<T> extends State<T> {
 
         for (const key in states) {
             group.value[key] = states[key].value;
-            states[key].sub(
-                (current) =>
-                    (group.value = Object.assign(group.value, {
-                        [key]: current,
-                    }))
-            );
+            states[key].sub((current) => {
+                group.value = Object.assign(group.value, {
+                    [key]: current,
+                });
+            });
         }
 
         return group;
@@ -41,7 +40,7 @@ export class AsyncState<T> extends State<T> {
                 child.value = loadingStatus;
             }
             fn(value).then((value) => (child.value = value));
-        })(this.value, this.value);
+        })(this.value);
 
         return child;
     }

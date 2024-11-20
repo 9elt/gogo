@@ -143,9 +143,11 @@ class AsyncState extends State {
     const group = new AsyncState({});
     for (const key in states) {
       group.value[key] = states[key].value;
-      states[key].sub((current) => group.value = Object.assign(group.value, {
-        [key]: current
-      }));
+      states[key].sub((current) => {
+        group.value = Object.assign(group.value, {
+          [key]: current
+        });
+      });
     }
     return group;
   }
@@ -156,7 +158,7 @@ class AsyncState extends State {
         child.value = loadingStatus;
       }
       fn(value).then((value2) => child.value = value2);
-    })(this.value, this.value);
+    })(this.value);
     return child;
   }
 }
@@ -836,7 +838,11 @@ function ExpandableText({
 }
 
 // src/components/episode.details.tsx
-function EpisodeDetails({ _details, _statusful, episodeNumber: episodeNumber2 }) {
+function EpisodeDetails({
+  _details,
+  _statusful,
+  episodeNumber: episodeNumber2
+}) {
   const status = _statusful.as((_statusful2) => _statusful2.find((s) => s.urlTitle === _details.urlTitle)?.status);
   const next = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) - 1] || null);
   const previous = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) + 1] || null);
@@ -917,10 +923,10 @@ function EpisodeDetails({ _details, _statusful, episodeNumber: episodeNumber2 })
         className: "episode-controls",
         children: [
           jsx("button", {
-            className: previous.as((previous2) => previous2 === null && "disabled" || ""),
-            onclick: previous.as((previous2) => previous2 !== null && (() => {
+            className: previous.as((previous2) => previous2 === null ? "disabled" : undefined),
+            onclick: previous.as((previous2) => previous2 === null ? undefined : () => {
               episodeNumber2.ref.value = previous2;
-            }) || null),
+            }),
             children: [
               ArrowLeft,
               " prev"
@@ -943,10 +949,10 @@ function EpisodeDetails({ _details, _statusful, episodeNumber: episodeNumber2 })
             })
           }, undefined, false, undefined, this),
           jsx("button", {
-            className: next.as((next2) => next2 === null && "disabled" || ""),
-            onclick: next.as((next2) => next2 !== null && (() => {
+            className: next.as((next2) => next2 === null ? "disabled" : undefined),
+            onclick: next.as((next2) => next2 === null ? undefined : () => {
               episodeNumber2.ref.value = next2;
-            }) || null),
+            }),
             children: [
               "next ",
               ArrowRight

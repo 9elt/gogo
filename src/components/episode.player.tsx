@@ -8,7 +8,7 @@ export function EpisodePlayer({ _episode }: { _episode: Episode }) {
 
     const src = new State(
         _episode.links.find((item) => item.server === lastServer)?.href ||
-        _episode.links[0].href
+            _episode.links[0].href
     );
 
     return (
@@ -27,7 +27,7 @@ export function EpisodePlayer({ _episode }: { _episode: Episode }) {
                 {_episode.links.map((item) => (
                     <button
                         className={src.as(
-                            (src) => src === item.href && "active" || ""
+                            (src) => (src === item.href && "active") || ""
                         )}
                         onclick={() => {
                             src.value = item.href;
