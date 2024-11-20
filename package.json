@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "@9elt/miniframe": "^0.9.4"
+        "@9elt/miniframe": "^0.9.9"
     },
     "devDependencies": {
         "@types/clean-css": "^4.2.11",

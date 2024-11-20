@@ -8,11 +8,11 @@ import { ArrowLeft } from "./arrow.left";
 import { ArrowRight } from "./arrow.right";
 import { ExpandableText } from "./expandable.text";
 
-export function EpisodeDetails(
-    _details: EpisodeDetails,
-    _statusful: StateRef<Statusful[]>,
-    episodeNumber: StateRef<number | null>
-) {
+export function EpisodeDetails({ _details, _statusful, episodeNumber }: {
+    _details: EpisodeDetails;
+    _statusful: StateRef<Statusful[]>;
+    episodeNumber: StateRef<number | null>;
+}) {
     const status = _statusful.as(
         (_statusful) =>
             _statusful.find((s) => s.urlTitle === _details.urlTitle)?.status

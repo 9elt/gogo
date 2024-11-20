@@ -8,40 +8,46 @@ var __createNode = function(D_props) {
   let node;
   const props = D_props instanceof State ? D_props.sub((curr) => {
     check__pref__tref(node);
-    if (node instanceof window.Text && (typeof curr === "string" || typeof curr === "number"))
+    if (node instanceof window.Text && (typeof curr === "string" || typeof curr === "number")) {
       return node.textContent = curr;
+    }
     const update = __createNode(curr);
     node.replaceWith(update);
     node = update;
   }) && D_props.value : D_props;
-  if (typeof props === "string" || typeof props === "number")
+  if (typeof props === "string" || typeof props === "number") {
     return node = window.document.createTextNode(props);
-  if (!props)
+  }
+  if (!props) {
     return node = window.document.createTextNode("");
-  if (props instanceof window.Node)
+  }
+  if (props instanceof window.Node) {
     return node = props;
+  }
   node = window.document.createElementNS(props.namespaceURI || "http://www.w3.org/1999/xhtml", props.tagName);
   copyObject(node, props);
   return node;
 };
 var copyObject = function(on, D_from) {
   const from = D_from instanceof State ? D_from.sub((curr, prev) => {
-    for (const key in prev)
+    for (const key in prev) {
       setPrimitive(on, key, null);
+    }
     check__pref__tref(on);
     on.__tref = curr;
     copyObject(on, curr);
   }) && (on.__tref = D_from.value) : D_from;
   for (const key in from)
-    if (key === "namespaceURI" || key === "tagName")
+    if (key === "namespaceURI" || key === "tagName") {
       continue;
-    else if (key === "children")
+    } else if (key === "children") {
       setNodeList(on, from[key]);
-    else if (typeof (from[key] instanceof State ? from[key].value : from[key]) === "object" && !on.__pref) {
+    } else if (typeof (from[key] instanceof State ? from[key].value : from[key]) === "object" && !on.__pref) {
       on[key].__pref = on;
       copyObject(on[key], from[key]);
-    } else
+    } else {
       setPrimitive(on, key, from);
+    }
 };
 var setNodeList = function(parent, D_children) {
   parent.append(...createNodeList(D_children instanceof State ? D_children.sub((current) => {
@@ -51,8 +57,9 @@ var setNodeList = function(parent, D_children) {
 };
 var createNodeList = function(props) {
   const list = new Array(props && props.length || 0);
-  for (let i = 0;i < list.length; i++)
+  for (let i = 0;i < list.length; i++) {
     list[i] = __createNode(props[i]);
+  }
   return list;
 };
 var setPrimitive = function(on, key, from) {
@@ -68,8 +75,9 @@ var setPrimitive = function(on, key, from) {
   }
 };
 var check__pref__tref = function(on, from) {
-  if (("__pref" in on ? !on.__pref.isConnected : !on.isConnected) || typeof from !== "undefined" && "__tref" in on && on.__tref !== from)
+  if (("__pref" in on ? !on.__pref.isConnected : !on.isConnected) || typeof from !== "undefined" && "__tref" in on && on.__tref !== from) {
     throw 1;
+  }
 };
 var TMP;
 
@@ -79,12 +87,12 @@ class State {
     this._s = [];
   }
   static use(states) {
-    const w = new State({});
+    const group = new State({});
     for (const key in states) {
-      w.value[key] = states[key].value;
-      states[key].sub((current) => w.value = Object.assign(w.value, { [key]: current }));
+      group.value[key] = states[key].value;
+      states[key].sub((current) => group.value = Object.assign(group.value, { [key]: current }));
     }
-    return w;
+    return group;
   }
   get value() {
     return this._v;
@@ -96,13 +104,16 @@ class State {
   set(f) {
     this.value = f(this._v);
   }
-  as(f) {
-    const _ = new State(f(this._v));
-    this.sub((curr) => _.value = f(curr));
-    return _;
+  as(f, collector) {
+    const child = new State(f(this._v));
+    this.sub((curr) => {
+      child.value = f(curr);
+    }, collector);
+    return child;
   }
-  sub(f) {
+  sub(f, collector) {
     this._s.push(f);
+    collector && collector.push(f);
     return f;
   }
   unsub(f) {
@@ -110,14 +121,15 @@ class State {
   }
   _d(curr, prev) {
     const s = new Array(this._s.length);
-    let len = 0;
-    for (let i = 0;i < this._s.length; i++)
+    let length = 0;
+    for (let i = 0;i < this._s.length; i++) {
       try {
         this._s[i](curr, prev);
-        s[len++] = this._s[i];
+        s[length++] = this._s[i];
       } catch (_a) {
       }
-    s.length = len;
+    }
+    s.length = length;
     this._s = s;
   }
 }
@@ -684,17 +696,20 @@ function SearchResult({
   }, undefined, true, undefined, this);
 }
 
-// node_modules/@9elt/mini-transpiler/jsx-dev-runtime.js
-var jsx = function(tagName, props) {
-  props ||= {};
+// node_modules/@9elt/miniframe/dist/esm/jsx-runtime.js
+var jsx = function(key, props) {
+  props || (props = {});
   if (props.children) {
-    props.children = props.children instanceof State ? props.children : Array.isArray(props.children) ? props.children.flat() : [props.children];
+    props.children = props.children instanceof State ? Array.isArray(props.children.value) ? props.children : [props.children] : Array.isArray(props.children) ? props.children.flat() : [props.children];
   }
-  if (typeof tagName === "function") {
-    return tagName(props);
+  if (typeof key === "function") {
+    return key(props);
   }
-  props.tagName = tagName;
+  props.tagName = key;
   return props;
+};
+var Fragment = function(props) {
+  return props.children;
 };
 
 // src/components/search.tsx
@@ -821,18 +836,20 @@ function ExpandableText({
 }
 
 // src/components/episode.details.tsx
-function EpisodeDetails(_details, _statusful, episodeNumber2) {
+function EpisodeDetails({ _details, _statusful, episodeNumber: episodeNumber2 }) {
   const status = _statusful.as((_statusful2) => _statusful2.find((s) => s.urlTitle === _details.urlTitle)?.status);
   const next = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) - 1] || null);
   const previous = episodeNumber2.as((episodeNumber3) => _details.episodes[_details.episodes.indexOf(episodeNumber3 || 0) + 1] || null);
   const scrollToEpisode = _details.episodes.length > 25;
   const buttonsElements = {};
   if (scrollToEpisode) {
-    episodeNumber2.sub((episodeNumber3) => episodeNumber3 !== null && buttonsElements[episodeNumber3]?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "nearest"
-    }));
+    episodeNumber2.sub((episodeNumber3) => {
+      episodeNumber3 !== null && buttonsElements[episodeNumber3]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest"
+      });
+    });
   }
   return jsx("div", {
     className: status.as((status2) => status2 === Status.Watching ? "episode-header watching" : "episode-header"),
@@ -861,7 +878,7 @@ function EpisodeDetails(_details, _statusful, episodeNumber2) {
               jsx("h2", {
                 children: status.as((status2) => status2 === Status.Watching ? "\u2605 " + _details.title : _details.title)
               }, undefined, false, undefined, this),
-              (_details.release || _details.status) && jsx("small", {
+              (_details.release || _details.status || null) && jsx("small", {
                 children: [
                   _details.release || null,
                   _details.status && _details.release && " \u2022 " || null,
@@ -900,10 +917,10 @@ function EpisodeDetails(_details, _statusful, episodeNumber2) {
         className: "episode-controls",
         children: [
           jsx("button", {
-            className: previous.as((previous2) => previous2 === null && "disabled" || null),
+            className: previous.as((previous2) => previous2 === null && "disabled" || ""),
             onclick: previous.as((previous2) => previous2 !== null && (() => {
               episodeNumber2.ref.value = previous2;
-            })),
+            }) || null),
             children: [
               ArrowLeft,
               " prev"
@@ -913,7 +930,7 @@ function EpisodeDetails(_details, _statusful, episodeNumber2) {
             className: _details.episodes.length < (isMobile ? 10 : 19) ? "episode-list center" : _details.episodes.length < 100 ? "episode-list" : _details.episodes.length < 200 ? "episode-list s" : "episode-list xs",
             children: _details.episodes.map((number) => {
               const button = createNode(jsx("button", {
-                className: episodeNumber2.as((_episodeNumber) => _episodeNumber === number && "active"),
+                className: episodeNumber2.as((_episodeNumber) => _episodeNumber === number && "active" || ""),
                 onclick: () => {
                   episodeNumber2.ref.value = number;
                 },
@@ -926,10 +943,10 @@ function EpisodeDetails(_details, _statusful, episodeNumber2) {
             })
           }, undefined, false, undefined, this),
           jsx("button", {
-            className: next.as((next2) => next2 === null && "disabled" || null),
+            className: next.as((next2) => next2 === null && "disabled" || ""),
             onclick: next.as((next2) => next2 !== null && (() => {
               episodeNumber2.ref.value = next2;
-            })),
+            }) || null),
             children: [
               "next ",
               ArrowRight
@@ -985,7 +1002,7 @@ var EpisodeDetailsLoading = jsx("div", {
 }, undefined, true, undefined, this);
 
 // src/components/episode.player.tsx
-function EpisodePlayer(_episode) {
+function EpisodePlayer({ _episode }) {
   const lastServer = localStorage.getItem(LSK_SERVER);
   const src = new State(_episode.links.find((item) => item.server === lastServer)?.href || _episode.links[0].href);
   return jsx("div", {
@@ -995,9 +1012,9 @@ function EpisodePlayer(_episode) {
         className: "player-iframe",
         src,
         allowFullscreen: true,
-        frameBorder: 0,
-        marginWidth: 0,
-        marginHeight: 0,
+        frameBorder: "0",
+        marginWidth: "0",
+        marginHeight: "0",
         scrolling: "no"
       }, undefined, false, undefined, this),
       jsx("div", {
@@ -1007,7 +1024,7 @@ function EpisodePlayer(_episode) {
             children: "servers"
           }, undefined, false, undefined, this),
           _episode.links.map((item) => jsx("button", {
-            className: src.as((src2) => src2 === item.href && "active"),
+            className: src.as((src2) => src2 === item.href && "active" || ""),
             onclick: () => {
               src.value = item.href;
               localStorage.setItem(LSK_SERVER, item.server);
@@ -1052,14 +1069,22 @@ var EpisodePlayerLoading = jsx("div", {
 // src/components/episode.tsx
 var statusfulRef2 = new StateRef(statusful2);
 var episodeNumberRef = new StateRef(episodeNumber);
-var Episode = [
-  details.as((_details) => {
-    statusfulRef2.clear();
-    episodeNumberRef.clear();
-    return _details ? EpisodeDetails(_details, statusfulRef2, episodeNumberRef) : EpisodeDetailsLoading;
-  }),
-  episode2.as((_episode) => _episode === -1 ? null : _episode ? EpisodePlayer(_episode) : EpisodePlayerLoading)
-];
+var Episode = jsx(Fragment, {
+  children: [
+    details.as((_details) => {
+      statusfulRef2.clear();
+      episodeNumberRef.clear();
+      return _details ? jsx(EpisodeDetails, {
+        _details,
+        _statusful: statusfulRef2,
+        episodeNumber: episodeNumberRef
+      }, undefined, false, undefined, this) : EpisodeDetailsLoading;
+    }),
+    episode2.as((_episode) => _episode === -1 ? null : _episode ? jsx(EpisodePlayer, {
+      _episode
+    }, undefined, false, undefined, this) : EpisodePlayerLoading)
+  ]
+}, undefined, true, undefined, this);
 
 // src/components/card.tsx
 function Card({
@@ -1139,7 +1164,7 @@ function ListPagination({
   onclick
 }) {
   if (page === null) {
-    return 0;
+    return null;
   }
   const size = 6;
   const left = 1;
@@ -1158,7 +1183,7 @@ function ListPagination({
     children: values.map((value) => jsx("button", {
       children: value,
       disabled: value === page,
-      className: value === page && "active",
+      className: value === page && "active" || undefined,
       onclick: () => {
         onclick(value);
       }
@@ -1279,10 +1304,12 @@ var WatchingPagination = State.use({
 }, undefined, false, undefined, this));
 
 // src/components/home.tsx
-var Home = [
-  watching.as((watching3) => watching3.data.length > 0 && WatchingList(watching3)),
-  releases.as((_releases) => _releases ? ReleasesList(_releases) : ReleasesLoading)
-];
+var Home = jsx(Fragment, {
+  children: [
+    watching.as((watching3) => watching3.data.length > 0 && WatchingList(watching3)),
+    releases.as((_releases) => _releases ? ReleasesList(_releases) : ReleasesLoading)
+  ]
+}, undefined, true, undefined, this);
 
 // src/components/logo.tsx
 var Logo = jsx("svg", {

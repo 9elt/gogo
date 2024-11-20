@@ -3,7 +3,7 @@ import type { Episode } from "../lib/gogo";
 
 const LSK_SERVER = "server";
 
-export function EpisodePlayer(_episode: Episode) {
+export function EpisodePlayer({ _episode }: { _episode: Episode }) {
     const lastServer = localStorage.getItem(LSK_SERVER);
 
     const src = new State(
