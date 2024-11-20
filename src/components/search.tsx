@@ -16,7 +16,7 @@ const SearchInput = createNode(
             search.value = e.target.value.trim() || null;
         }, 1_000)}
     />
-);
+) as HTMLInputElement;
 
 export const Search = createNode(
     <div className="search-container">

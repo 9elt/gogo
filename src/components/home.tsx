@@ -1,9 +1,9 @@
-import type { MiniElement } from "@9elt/miniframe";
+import { JSX } from "@9elt/miniframe/jsx-runtime";
 import { ReleasesList, ReleasesLoading } from "../components/releases.list";
 import { releases, watching } from "../global";
 import { WatchingList } from "./watching.list";
 
-export const Home: MiniElement[] = [
+export const Home: JSX.Element[] = [
     // @ts-ignore
     watching.as(
         (watching) => watching.data.length > 0 && WatchingList(watching)

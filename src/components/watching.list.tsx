@@ -1,4 +1,4 @@
-import { State, type MiniElement } from "@9elt/miniframe";
+import { State } from "@9elt/miniframe";
 import { statusful, watching, watchingPage, type Watching } from "../global";
 import { StateRef } from "../lib/state.ref";
 import { Card } from "./card";
@@ -19,7 +19,7 @@ const WatchingPagination = State.use({
     />
 ));
 
-export function WatchingList(_watching: Watching): MiniElement {
+export function WatchingList(_watching: Watching) {
     statusfulRef.clear();
 
     return (

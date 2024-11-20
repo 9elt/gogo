@@ -1,14 +1,14 @@
-import { State, createNode, type MiniElement } from "@9elt/miniframe";
+import { State } from "@9elt/miniframe";
 import type { Episode } from "../lib/gogo";
 
 const LSK_SERVER = "server";
 
-export function EpisodePlayer(_episode: Episode): MiniElement {
+export function EpisodePlayer(_episode: Episode) {
     const lastServer = localStorage.getItem(LSK_SERVER);
 
     const src = new State(
         _episode.links.find((item) => item.server === lastServer)?.href ||
-            _episode.links[0].href
+        _episode.links[0].href
     );
 
     return (
@@ -17,9 +17,9 @@ export function EpisodePlayer(_episode: Episode): MiniElement {
                 className="player-iframe"
                 src={src}
                 allowFullscreen={true}
-                frameBorder={0}
-                marginWidth={0}
-                marginHeight={0}
+                frameBorder={"0"}
+                marginWidth={"0"}
+                marginHeight={"0"}
                 scrolling="no"
             />
             <div className="player-server-list">
@@ -27,7 +27,7 @@ export function EpisodePlayer(_episode: Episode): MiniElement {
                 {_episode.links.map((item) => (
                     <button
                         className={src.as(
-                            (src) => src === item.href && "active"
+                            (src) => src === item.href && "active" || ""
                         )}
                         onclick={() => {
                             src.value = item.href;

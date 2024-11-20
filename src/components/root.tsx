@@ -1,4 +1,3 @@
-import type { MiniElement } from "@9elt/miniframe";
 import { Search } from "../components/search";
 import { Route, episodeNumber, route, urlTitle } from "../global";
 import { GOGO_URL } from "../lib/gogo";
@@ -6,7 +5,7 @@ import { Episode } from "./episode";
 import { Home } from "./home";
 import { Logo } from "./logo";
 
-export const Root: MiniElement = (
+export const Root = (
     <div id="root">
         <header>
             <div>

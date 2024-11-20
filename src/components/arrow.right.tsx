@@ -1,6 +1,4 @@
-import type { MiniElement } from "@9elt/miniframe";
-
-export const ArrowRight: MiniElement = (
+export const ArrowRight = (
     <svg
         namespaceURI="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"

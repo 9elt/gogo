@@ -1,9 +1,8 @@
 {
     "dependencies": {
-        "@9elt/miniframe": "^0.8.4"
+        "@9elt/miniframe": "^0.9.4"
     },
     "devDependencies": {
-        "@9elt/mini-transpiler": "^0.0.3",
         "@types/clean-css": "^4.2.11",
         "clean-css": "^5.3.3",
         "http-server": "^14.1.1",
