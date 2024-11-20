@@ -51,7 +51,7 @@ export function SearchResult({
             className={status.as((status) =>
                 status === Status.Watching
                     ? "search-result watching"
-                    : "search-result" as string
+                    : "search-result"
             )}
             onmouseenter={prefetch}
             onmouseleave={cancel}

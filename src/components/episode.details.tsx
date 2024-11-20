@@ -40,13 +40,14 @@ export function EpisodeDetails(
 
     if (scrollToEpisode) {
         episodeNumber.sub(
-            (episodeNumber) =>
+            (episodeNumber) => {
                 episodeNumber !== null &&
-                buttonsElements[episodeNumber]?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "nearest",
-                    inline: "nearest",
-                })
+                    buttonsElements[episodeNumber]?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "nearest",
+                        inline: "nearest",
+                    });
+            }
         );
     }
 
@@ -123,14 +124,14 @@ export function EpisodeDetails(
                     <button
                         className={previous.as(
                             (previous) =>
-                                (previous === null && "disabled") || null
+                                (previous === null && "disabled") || ""
                         )}
                         onclick={previous.as(
                             (previous) =>
                                 previous !== null &&
                                 (() => {
                                     episodeNumber.ref.value = previous;
-                                })
+                                }) || null
                         )}
                     >
                         {ArrowLeft} prev
@@ -152,7 +153,7 @@ export function EpisodeDetails(
                                     className={episodeNumber.as(
                                         (_episodeNumber) =>
                                             _episodeNumber === number &&
-                                            "active" || undefined
+                                            "active" || ""
                                     )}
                                     onclick={() => {
                                         episodeNumber.ref.value = number;
@@ -171,14 +172,14 @@ export function EpisodeDetails(
                     </div>
                     <button
                         className={next.as(
-                            (next) => (next === null && "disabled") || null
+                            (next) => (next === null && "disabled") || ""
                         )}
                         onclick={next.as(
                             (next) =>
                                 next !== null &&
                                 (() => {
                                     episodeNumber.ref.value = next;
-                                })
+                                }) || null
                         )}
                     >
                         next {ArrowRight}

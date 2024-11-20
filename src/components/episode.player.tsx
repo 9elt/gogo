@@ -27,7 +27,7 @@ export function EpisodePlayer(_episode: Episode) {
                 {_episode.links.map((item) => (
                     <button
                         className={src.as(
-                            (src) => src === item.href && "active"
+                            (src) => src === item.href && "active" || ""
                         )}
                         onclick={() => {
                             src.value = item.href;

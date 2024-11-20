@@ -55,7 +55,7 @@ export function Card({
         <div
             tabIndex={0}
             className={status.as((status) =>
-                status === Status.Watching ? "card watching" : "card" as string
+                status === Status.Watching ? "card watching" : "card"
             )}
             onmouseenter={prefetch}
             onmouseleave={cancel}
